@@ -1,5 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 const ICONS: Record<string, string> = {
   dashboard:    `<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>`,
@@ -78,5 +79,14 @@ export class IconComponent {
   @Input() name  = '';
   @Input() size  = 20;
   @Input() color = 'currentColor';
-  get path() { return ICONS[this.name] ?? ''; }
+
+  constructor(private sanitizer: DomSanitizer) {}
+
+  // ICONS is a fixed, hardcoded internal record (never user-supplied), so bypassing the
+  // sanitizer here is safe and necessary: Angular's default HTML sanitizer strips bare
+  // SVG primitives like <line> (and some other tags) when bound via [innerHTML], which
+  // silently rendered several icons (e.g. "preferences", "close", "plus") as blank.
+  get path(): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(ICONS[this.name] ?? '');
+  }
 }
