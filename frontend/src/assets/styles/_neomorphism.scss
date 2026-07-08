@@ -1,0 +1,95 @@
+@import 'variables';
+
+// ─── Glass Utility Classes ────────────────────────────────────────────────────
+// Named ".neo*" for backward compatibility with the many components already
+// using these classes, but implemented as glass panels: translucent
+// background + backdrop blur + hairline border + soft ambient shadow.
+// Built on CSS custom properties (not SCSS $vars) so they react live to the
+// [data-theme] toggle — the previous SCSS-variable version was frozen to the
+// light palette and never actually changed when dark mode was toggled.
+
+@mixin glass-surface {
+  background:            var(--bg);
+  backdrop-filter:        blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  border:                 1px solid var(--glass-border);
+}
+
+.neo         { @include glass-surface; box-shadow: var(--neo-raised);  border-radius: var(--radius); }
+.neo-sm      { @include glass-surface; box-shadow: var(--neo-sm);      border-radius: var(--radius-sm); }
+.neo-inset   { @include glass-surface; box-shadow: var(--neo-inset);   border-radius: var(--radius); }
+.neo-float   { @include glass-surface; box-shadow: var(--neo-float);   border-radius: var(--radius); }
+.neo-pill    { @include glass-surface; box-shadow: var(--neo-sm);      border-radius: var(--radius-pill); }
+
+// ─── Reusable Component Mixins ────────────────────────────────────────────────
+
+@mixin neo-card($radius: var(--radius)) {
+  @include glass-surface;
+  box-shadow:    var(--neo-raised);
+  border-radius: $radius;
+  padding:       $space-lg;
+}
+
+@mixin neo-inset-card($radius: var(--radius)) {
+  @include glass-surface;
+  box-shadow:    var(--neo-inset);
+  border-radius: $radius;
+  padding:       $space-lg;
+}
+
+@mixin neo-button-base {
+  border: none;
+  font-family:    $font-body;
+  font-weight:    600;
+  cursor:         pointer;
+  transition:     $transition;
+  border-radius:  var(--radius-pill);
+  display:        inline-flex;
+  align-items:    center;
+  justify-content: center;
+  gap:            8px;
+  white-space:    nowrap;
+
+  &:disabled {
+    opacity:       0.5;
+    cursor:        not-allowed;
+    transform:     none !important;
+    box-shadow:    var(--neo-sm) !important;
+  }
+}
+
+@mixin neo-input-base {
+  width:          100%;
+  @include glass-surface;
+  border-radius:  var(--radius-sm);
+  box-shadow:     var(--neo-inset);
+  font-family:    $font-body;
+  font-size:      13px;
+  color:          var(--text);
+  outline:        none;
+  transition:     $transition;
+  padding:        12px 16px;
+
+  &::placeholder { color: var(--text-light); }
+  &:focus        { box-shadow: var(--neo-inset), 0 0 0 2px var(--accent-dim); }
+}
+
+// ─── Status Badge Mixins ──────────────────────────────────────────────────────
+
+@mixin status-badge($bg-color, $text-color) {
+  background:    $bg-color;
+  color:         $text-color;
+  padding:       4px 10px;
+  border-radius: var(--radius-pill);
+  font-size:     11px;
+  font-weight:   600;
+  display:       inline-flex;
+  align-items:   center;
+  gap:           4px;
+}
+
+// ─── Responsive Helpers ───────────────────────────────────────────────────────
+
+@mixin mobile { @media (max-width: #{$bp-md}) { @content; } }
+@mixin tablet { @media (min-width: #{$bp-md}) and (max-width: #{$bp-lg}) { @content; } }
+@mixin desktop { @media (min-width: #{$bp-lg}) { @content; } }

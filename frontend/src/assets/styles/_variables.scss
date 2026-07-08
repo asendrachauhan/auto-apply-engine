@@ -1,0 +1,57 @@
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+// AutoApply AI — Neomorphism Design System
+
+// Colors
+$bg:            #e0e5ec;
+$surface:       #e0e5ec;
+$shadow-light:  #ffffff;
+$shadow-dark:   #a3b1c6;
+$accent:        #6c63ff;
+$accent-dim:    rgba(108, 99, 255, 0.12);
+$accent2:       #43e97b;
+$danger:        #f5576c;
+$warning:       #f8961e;
+$gold:          #f4b942;
+$text:          #2d3748;
+$text-muted:    #718096;
+$text-light:    #a0aec0;
+
+// Neomorphism shadows
+$neo-raised:    6px 6px 14px #a3b1c6, -6px -6px 14px #ffffff;
+$neo-inset:     inset 4px 4px 10px #a3b1c6, inset -4px -4px 10px #ffffff;
+$neo-float:     10px 10px 24px #a3b1c6, -10px -10px 24px #ffffff;
+$neo-sm:        4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff;
+
+// Border radii
+$radius-xs:     6px;
+$radius-sm:     10px;
+$radius:        16px;
+$radius-lg:     24px;
+$radius-pill:   50px;
+
+// Typography
+$font-body:     'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+$font-display:  'Space Grotesk', $font-body;
+
+// Spacing scale
+$space-xs:   4px;
+$space-sm:   8px;
+$space-md:   16px;
+$space-lg:   24px;
+$space-xl:   32px;
+$space-2xl:  48px;
+
+// Transitions
+$transition:       all 0.25s ease;
+$transition-slow:  all 0.4s ease;
+
+// Breakpoints
+$bp-sm:   480px;
+$bp-md:   768px;
+$bp-lg:   1024px;
+$bp-xl:   1280px;
+
+// Sidebar
+$sidebar-width:         260px;
+$sidebar-width-mobile:  0px;
+$header-height:         64px;
