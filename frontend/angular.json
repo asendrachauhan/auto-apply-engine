@@ -48,10 +48,21 @@
           },
           "defaultConfiguration": "development",
           "options": {
-            "proxyConfig": "src/proxy.conf.json"
+            "proxyConfig": "src/proxy.conf.json",
+            "host": "0.0.0.0",
+            "port": 5000,
+            "allowedHosts": [
+              "localhost",
+              ".replit.dev",
+              ".pike.replit.dev",
+              "65f34dac-eef3-4ade-8418-630f61a8056f-00-1zlrh1bqo1253.pike.replit.dev"
+            ]
           }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
