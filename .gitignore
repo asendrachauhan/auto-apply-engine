@@ -31,5 +31,8 @@ Thumbs.db
 uploads/
 temp/
 
+# Local dev database data (mongod)
+.data/
+
 # Coverage
 coverage/
