@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NeoButtonComponent } from '../../shared/components/neo-button/neo-button.component';
@@ -11,30 +12,30 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'aa-jobs',
   standalone: true,
-  imports: [CommonModule, FormsModule, NeoButtonComponent, StatusBadgeComponent, GhostScoreComponent, IconComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, NeoButtonComponent, StatusBadgeComponent, GhostScoreComponent, IconComponent],
   template: `
     <div class="page-container">
       <div class="page-header d-flex justify-between align-center">
         <div>
-          <h1 class="page-title">Applications</h1>
-          <p class="page-subtitle">Every job applied on your behalf — tracked here.</p>
+          <h1 class="page-title">{{ 'JOBS.TITLE' | translate }}</h1>
+          <p class="page-subtitle">{{ 'JOBS.SUBTITLE' | translate }}</p>
         </div>
         <div class="d-flex gap-8">
-          <span class="total-badge">{{ pagination().total }} total</span>
+          <span class="total-badge">{{ pagination().total }} {{ 'JOBS.TOTAL' | translate }}</span>
         </div>
       </div>
 
       <!-- Filters -->
       <div class="filters-bar neo-sm">
-        <span class="filter-label">STATUS</span>
+        <span class="filter-label">{{ 'JOBS.STATUS' | translate }}</span>
         @for (f of filters; track f.value) {
           <button class="filter-btn" [class.active]="activeFilter() === f.value" (click)="setFilter(f.value)">
-            {{ f.label }}
+            {{ f.label | translate }}
           </button>
         }
         <div class="filter-search">
           <aa-icon name="search" [size]="14" class="search-icon"/>
-          <input class="neo-input search-input" [(ngModel)]="searchQuery" placeholder="Search company or role…"
+          <input class="neo-input search-input" [(ngModel)]="searchQuery" [placeholder]="'JOBS.SEARCH_PLACEHOLDER' | translate"
             (input)="onSearch()">
         </div>
       </div>
@@ -49,8 +50,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       } @else if (visibleApps().length === 0) {
         <div class="empty-state neo">
           <aa-icon name="briefcase" [size]="44" class="empty-icon"/>
-          <div class="empty-title">No applications found</div>
-          <div class="empty-sub">{{ activeFilter() !== 'all' || searchQuery ? 'Try a different filter or search.' : 'Activate automation to start applying.' }}</div>
+          <div class="empty-title">{{ 'JOBS.NO_FOUND' | translate }}</div>
+          <div class="empty-sub">{{ activeFilter() !== 'all' || searchQuery ? ('JOBS.TRY_FILTER' | translate) : ('JOBS.ACTIVATE_AUTOMATION' | translate) }}</div>
         </div>
       } @else {
         <div class="jobs-grid">
@@ -73,7 +74,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               <aa-ghost-score [ghostScore]="app.ghostScore" class="mb-8"/>
 
               <div class="job-card-actions" (click)="$event.stopPropagation()">
-                <aa-button variant="ghost" size="sm" (clicked)="openUrl(app.jobUrl)" iconRight="externalLink">View Job</aa-button>
+                <aa-button variant="ghost" size="sm" (clicked)="openUrl(app.jobUrl)" iconRight="externalLink">{{ 'JOBS.VIEW_JOB' | translate }}</aa-button>
               </div>
             </div>
           }
@@ -82,9 +83,9 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         <!-- Pagination -->
         @if (pagination().pages > 1) {
           <div class="pagination">
-            <aa-button variant="secondary" size="sm" [disabled]="page() === 1" (clicked)="goPage(page()-1)">Prev</aa-button>
+            <aa-button variant="secondary" size="sm" [disabled]="page() === 1" (clicked)="goPage(page()-1)">{{ 'JOBS.PREV' | translate }}</aa-button>
             <span class="page-info">{{ page() }} / {{ pagination().pages }}</span>
-            <aa-button variant="secondary" size="sm" [disabled]="page() === pagination().pages" (clicked)="goPage(page()+1)">Next</aa-button>
+            <aa-button variant="secondary" size="sm" [disabled]="page() === pagination().pages" (clicked)="goPage(page()+1)">{{ 'JOBS.NEXT' | translate }}</aa-button>
           </div>
         }
       }
@@ -103,7 +104,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
             <div class="detail-score">
               <div class="big-score">{{ selectedApp()!.matchScore }}%</div>
-              <div class="text-muted text-sm">AI Match Score</div>
+              <div class="text-muted text-sm">{{ 'JOBS.AI_MATCH_SCORE' | translate }}</div>
               @if (selectedApp()!.ghostScore !== null && selectedApp()!.ghostScore !== undefined) {
                 <div class="mt-8"><aa-ghost-score [ghostScore]="selectedApp()!.ghostScore" style="margin:0 auto;width:fit-content;"/></div>
               }
@@ -111,7 +112,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
             @if (selectedApp()!.matchDimensions?.matchReasons?.length) {
               <div class="detail-section">
-                <div class="detail-section-title"><aa-icon name="checkCircle" [size]="14"/> Why this matched</div>
+                <div class="detail-section-title"><aa-icon name="checkCircle" [size]="14"/> {{ 'JOBS.WHY_MATCHED' | translate }}</div>
                 <ul class="reasons-list">
                   @for (r of selectedApp()!.matchDimensions.matchReasons; track r) {
                     <li>{{ r }}</li>
@@ -122,13 +123,13 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
             @if (selectedApp()!.coverLetter) {
               <div class="detail-section">
-                <div class="detail-section-title"><aa-icon name="fileEdit" [size]="14"/> Cover Letter Sent</div>
+                <div class="detail-section-title"><aa-icon name="fileEdit" [size]="14"/> {{ 'JOBS.COVER_LETTER_SENT' | translate }}</div>
                 <div class="cover-preview">{{ selectedApp()!.coverLetter }}</div>
               </div>
             }
 
             <div class="detail-section">
-              <div class="detail-section-title"><aa-icon name="refresh" [size]="14"/> Update Status</div>
+              <div class="detail-section-title"><aa-icon name="refresh" [size]="14"/> {{ 'JOBS.UPDATE_STATUS' | translate }}</div>
               <div class="status-btns">
                 @for (s of statusOptions; track s) {
                   <button class="status-opt" [class.active]="selectedApp()!.status === s"
@@ -140,7 +141,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             </div>
 
             <aa-button variant="primary" [fullWidth]="true" (clicked)="openUrl(selectedApp()!.jobUrl)" iconRight="externalLink">
-              Open Job Posting
+              {{ 'JOBS.OPEN_JOB_POSTING' | translate }}
             </aa-button>
           </div>
         </div>
@@ -230,11 +231,11 @@ export class JobsComponent implements OnInit {
   });
 
   filters = [
-    { value:'all',       label:'All'       },
-    { value:'applied',   label:'Applied'   },
-    { value:'interview', label:'Interview' },
-    { value:'offer',     label:'Offer'     },
-    { value:'rejected',  label:'Rejected'  },
+    { value:'all',       label:'JOBS.ALL'       },
+    { value:'applied',   label:'JOBS.APPLIED'   },
+    { value:'interview', label:'JOBS.INTERVIEW' },
+    { value:'offer',     label:'JOBS.OFFER'     },
+    { value:'rejected',  label:'JOBS.REJECTED'  },
   ];
 
   statusOptions = ['applied','viewed','interview','offer','rejected'];

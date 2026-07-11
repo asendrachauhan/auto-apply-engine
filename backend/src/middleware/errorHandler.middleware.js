@@ -2,7 +2,8 @@
  * Global error handler — never leaks stack traces to clients.
  * Logs full error internally. Returns safe message externally.
  */
-const logger = require('../utils/logger');
+const logger          = require('../utils/logger');
+const { sendCriticalAlert } = require('../utils/alertMailer');
 
 const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
@@ -29,6 +30,15 @@ const errorHandler = (err, req, res, next) => {
   if (err.code === 'LIMIT_FILE_SIZE') { statusCode = 400; message = 'File too large — maximum 5MB'; }
 
   logger.error(`${req.method} ${req.originalUrl} — ${statusCode}: ${err.message}`, { stack: err.stack });
+
+  // Email alert for unhandled 500s in production
+  if (statusCode === 500) {
+    sendCriticalAlert(err, {
+      method : req.method,
+      url    : req.originalUrl,
+      userId : req.user?.id,
+    }).catch(() => {}); // never block the response
+  }
 
   // Never expose internal details in production
   const safeMessage = process.env.NODE_ENV === 'production' && statusCode === 500

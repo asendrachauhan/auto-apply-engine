@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { switchMap, startWith } from 'rxjs/operators';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -14,19 +15,19 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'aa-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, NeoButtonComponent, ProgressRingComponent, StatusBadgeComponent, IconComponent],
+  imports: [CommonModule, RouterModule, TranslateModule, NeoButtonComponent, ProgressRingComponent, StatusBadgeComponent, IconComponent],
   template: `
     <div class="page-container">
       <div class="page-header d-flex justify-between align-center">
         <div>
-          <h1 class="page-title">Dashboard</h1>
-          <p class="page-subtitle">Welcome back, {{ firstName() }}. Here's your job hunt summary.</p>
+          <h1 class="page-title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
+          <p class="page-subtitle">{{ 'DASHBOARD.WELCOME' | translate: { name: firstName() } }}</p>
         </div>
         <div class="header-actions">
           <aa-button variant="secondary" size="sm" [routerLink]="['/plans']" icon="star">
             {{ planLabel() }}
           </aa-button>
-          <aa-button [loading]="runningNow()" (clicked)="runNow()" icon="zap">Run Now</aa-button>
+          <aa-button [loading]="runningNow()" (clicked)="runNow()" icon="zap">{{ 'DASHBOARD.RUN_NOW' | translate }}</aa-button>
         </div>
       </div>
 
@@ -45,19 +46,19 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       <div class="grid-2">
         <!-- Daily limit ring -->
         <div class="section-card">
-          <div class="section-title"><aa-icon name="zap" [size]="16"/> Today's Progress</div>
+          <div class="section-title"><aa-icon name="zap" [size]="16"/> {{ 'DASHBOARD.TODAYS_PROGRESS' | translate }}</div>
           <div class="ring-row">
             <aa-progress-ring
               [percent]="dailyPercent()"
               [size]="110"
-              [label]="'Applied'"
+              [label]="'DASHBOARD.APPLIED' | translate"
               [suffix]="''"
             />
             <div class="ring-meta">
               <div class="ring-big">{{ todayApplied() }}<span class="ring-denom">/{{ user()?.dailyApplyLimit || 20 }}</span></div>
-              <div class="text-muted text-sm">Today's applications</div>
+              <div class="text-muted text-sm">{{ 'DASHBOARD.TODAYS_APPS' | translate }}</div>
               <div class="mt-8">
-                <aa-button size="sm" variant="secondary" [routerLink]="['/automation']">View Log</aa-button>
+                <aa-button size="sm" variant="secondary" [routerLink]="['/automation']">{{ 'DASHBOARD.VIEW_LOG' | translate }}</aa-button>
               </div>
             </div>
           </div>
@@ -65,13 +66,13 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
         <!-- Automation toggle -->
         <div class="section-card">
-          <div class="section-title"><aa-icon name="automation" [size]="16"/> Automation Control</div>
+          <div class="section-title"><aa-icon name="automation" [size]="16"/> {{ 'DASHBOARD.AUTOMATION_CONTROL' | translate }}</div>
           <div class="auto-control">
             <div class="auto-state" [class.active]="autoActive()">
               <div class="auto-pulse" [class.on]="autoActive()"></div>
               <div>
-                <div class="auto-state-label">{{ autoActive() ? 'Running Automatically' : 'Automation Paused' }}</div>
-                <div class="text-muted text-sm">{{ autoActive() ? 'Next run every 6 hrs' : 'Toggle to activate' }}</div>
+                <div class="auto-state-label">{{ autoActive() ? ('DASHBOARD.RUNNING_AUTO' | translate) : ('DASHBOARD.AUTOMATION_PAUSED' | translate) }}</div>
+                <div class="text-muted text-sm">{{ autoActive() ? ('DASHBOARD.NEXT_RUN' | translate) : ('DASHBOARD.TOGGLE_ACTIVATE' | translate) }}</div>
               </div>
             </div>
             <label class="big-toggle">
@@ -84,7 +85,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           @if (isPro()) {
             <div class="realtime-row">
               <span class="pro-badge">PRO</span>
-              <span class="text-sm text-muted">Real-time watcher</span>
+              <span class="text-sm text-muted">{{ 'DASHBOARD.REALTIME_WATCHER' | translate }}</span>
               <label class="mini-toggle">
                 <input type="checkbox" [checked]="watchActive()" (change)="toggleWatch($event)">
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
@@ -97,8 +98,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       <!-- Recent applications -->
       <div class="section-card">
         <div class="section-title d-flex justify-between align-center">
-          <span class="d-flex align-center gap-8"><aa-icon name="briefcase" [size]="16"/> Recent Applications</span>
-          <aa-button variant="ghost" size="sm" [routerLink]="['/jobs']">View All</aa-button>
+          <span class="d-flex align-center gap-8"><aa-icon name="briefcase" [size]="16"/> {{ 'DASHBOARD.RECENT_APPLICATIONS' | translate }}</span>
+          <aa-button variant="ghost" size="sm" [routerLink]="['/jobs']">{{ 'DASHBOARD.VIEW_ALL' | translate }}</aa-button>
         </div>
 
         @if (loadingApps()) {
@@ -110,9 +111,9 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         } @else if (recentApps().length === 0) {
           <div class="empty-state">
             <aa-icon name="briefcase" [size]="40" class="empty-icon"/>
-            <div class="empty-title">No applications yet</div>
-            <div class="empty-sub">Upload your resume and activate automation to start applying automatically</div>
-            <aa-button size="sm" [routerLink]="['/resume']" class="mt-16" icon="upload">Upload Resume</aa-button>
+            <div class="empty-title">{{ 'DASHBOARD.NO_APPS_YET' | translate }}</div>
+            <div class="empty-sub">{{ 'DASHBOARD.UPLOAD_TO_START' | translate }}</div>
+            <aa-button size="sm" [routerLink]="['/resume']" class="mt-16" icon="upload">{{ 'DASHBOARD.UPLOAD_RESUME' | translate }}</aa-button>
           </div>
         } @else {
           <div class="apps-list">
@@ -199,12 +200,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isPro      = computed(() => ['pro','elite'].includes(this.user()?.plan || 'free'));
   recentApps = signal<any[]>([]);
 
-  stats = computed(() => [
-    { icon:'send',          label:'Total Applied', value: this.totalApps(),      delta: this.todayApplied() + ' today',  positive: true },
-    { icon:'target',        label:'Match Rate',    value: this.matchRate()+'%',  delta:'Avg AI score across recent apps', positive: true },
-    { icon:'messageCircle', label:'Interviews',    value: this.interviews(),     delta:'Among recent apps',               positive: true },
-    { icon:'star',          label:'ATS Score',     value: this.atsScore() ?? '—',delta:'Resume score',                    positive: false },
-  ]);
+  stats = computed(() => {
+    const t = this.translate;
+    return [
+      { icon:'send',          label: t.instant('DASHBOARD.TOTAL_APPLIED'), value: this.totalApps(),      delta: this.todayApplied() + ' ' + t.instant('DASHBOARD.TODAY_SUFFIX'), positive: true },
+      { icon:'target',        label: t.instant('DASHBOARD.MATCH_RATE'),    value: this.matchRate()+'%',  delta: t.instant('DASHBOARD.AVG_SCORE'),                                positive: true },
+      { icon:'messageCircle', label: t.instant('DASHBOARD.INTERVIEWS'),    value: this.interviews(),     delta: t.instant('DASHBOARD.AMONG_RECENT'),                             positive: true },
+      { icon:'star',          label: t.instant('DASHBOARD.ATS_SCORE'),     value: this.atsScore() ?? '—',delta: t.instant('DASHBOARD.RESUME_SCORE'),                             positive: false },
+    ];
+  });
 
   totalApps  = signal(0);
   matchRate  = signal(0);
@@ -218,7 +222,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   planLabel = computed(() => {
     const plan = this.user()?.plan || 'free';
-    return plan === 'free' ? 'Free Plan' : plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
+    return this.translate.instant('SIDEBAR.PLAN_LABEL', { plan: plan.charAt(0).toUpperCase() + plan.slice(1) });
   });
 
   private subs: Subscription[] = [];
@@ -226,7 +230,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private api: ApiService,
     public  auth: AuthService,
-    private toast: ToastService
+    private toast: ToastService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {

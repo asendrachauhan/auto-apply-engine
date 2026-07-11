@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NeoButtonComponent } from '../../shared/components/neo-button/neo-button.component';
@@ -10,23 +11,23 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'aa-resume',
   standalone: true,
-  imports: [CommonModule, FormsModule, NeoButtonComponent, ProgressRingComponent, IconComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, NeoButtonComponent, ProgressRingComponent, IconComponent],
   template: `
     <div class="page-container">
       <div class="page-header d-flex justify-between align-center">
         <div>
-          <h1 class="page-title">My Resume</h1>
-          <p class="page-subtitle">AI parses, optimizes, and tailors before every single application.</p>
+          <h1 class="page-title">{{ 'RESUME.TITLE' | translate }}</h1>
+          <p class="page-subtitle">{{ 'RESUME.SUBTITLE' | translate }}</p>
         </div>
         @if (parsed()) {
-          <aa-button variant="secondary" size="sm" (clicked)="reset()" icon="refresh">Re-upload</aa-button>
+          <aa-button variant="secondary" size="sm" (clicked)="reset()" icon="refresh">{{ 'RESUME.RE_UPLOAD' | translate }}</aa-button>
         }
       </div>
 
       @if (!parsed()) {
         <!-- Upload section -->
         <div class="section-card">
-          <div class="section-title"><aa-icon name="upload" [size]="16"/> Upload Resume</div>
+          <div class="section-title"><aa-icon name="upload" [size]="16"/> {{ 'RESUME.UPLOAD_SECTION' | translate }}</div>
           <div
             class="upload-zone"
             [class.dragover]="dragover()"
@@ -36,11 +37,11 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             (drop)="onDrop($event)"
           >
             <aa-icon name="resume" [size]="48" class="upload-icon"/>
-            <div class="upload-title">Drop resume here or click to browse</div>
-            <div class="upload-sub">PDF · DOC · DOCX · TXT — max 5 MB</div>
+            <div class="upload-title">{{ 'RESUME.DROP_ZONE' | translate }}</div>
+            <div class="upload-sub">{{ 'RESUME.FORMATS' | translate }}</div>
             <aa-button variant="secondary" size="sm" class="mt-16"
               (clicked)="$event.stopPropagation(); fileInput.click()">
-              Choose File
+              {{ 'RESUME.CHOOSE_FILE' | translate }}
             </aa-button>
           </div>
           <input #fileInput type="file" accept=".pdf,.doc,.docx,.txt"
@@ -48,12 +49,12 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         </div>
 
         <div class="section-card">
-          <div class="section-title"><aa-icon name="fileEdit" [size]="16"/> Or Paste Resume Text</div>
+          <div class="section-title"><aa-icon name="fileEdit" [size]="16"/> {{ 'RESUME.PASTE_SECTION' | translate }}</div>
           <textarea class="neo-input" rows="11" [(ngModel)]="rawText"
             placeholder="Paste your full resume text here…&#10;&#10;Include: name, email, skills, experience, education…"></textarea>
           <div class="d-flex gap-8 mt-16">
-            <aa-button [loading]="parsing()" (clicked)="parseText()" icon="sparkles">Parse &amp; Optimize with AI</aa-button>
-            <aa-button variant="ghost" size="sm" (clicked)="loadSample()">Load sample</aa-button>
+            <aa-button [loading]="parsing()" (clicked)="parseText()" icon="sparkles">{{ 'RESUME.PARSE_BTN' | translate }}</aa-button>
+            <aa-button variant="ghost" size="sm" (clicked)="loadSample()">{{ 'RESUME.LOAD_SAMPLE' | translate }}</aa-button>
           </div>
         </div>
       } @else {
@@ -65,25 +66,25 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               [percent]="parsed().atsScore || 0"
               [size]="130"
               [stroke]="10"
-              label="ATS Score"
+              [label]="'RESUME.ATS_SCORE' | translate"
               [color]="scoreColor(parsed().atsScore)"
             />
             <div class="score-grade">{{ scoreGrade(parsed().atsScore) }}</div>
-            <div class="text-muted text-sm">AI-optimised for maximum visibility</div>
+            <div class="text-muted text-sm">{{ 'RESUME.AI_OPTIMISED' | translate }}</div>
             <div class="d-flex gap-8 mt-16">
-              <aa-button size="sm" [loading]="parsing()" (clicked)="reoptimize()" icon="refresh">Re-optimise</aa-button>
-              <aa-button size="sm" variant="secondary" (clicked)="downloadTip()" icon="download">Download</aa-button>
+              <aa-button size="sm" [loading]="parsing()" (clicked)="reoptimize()" icon="refresh">{{ 'RESUME.RE_OPTIMISE' | translate }}</aa-button>
+              <aa-button size="sm" variant="secondary" (clicked)="downloadTip()" icon="download">{{ 'RESUME.DOWNLOAD' | translate }}</aa-button>
             </div>
           </div>
 
           <!-- Profile card -->
           <div class="section-card">
-            <div class="section-title"><aa-icon name="users" [size]="16"/> Profile</div>
+            <div class="section-title"><aa-icon name="users" [size]="16"/> {{ 'RESUME.PROFILE_SECTION' | translate }}</div>
             <div class="profile-name">{{ name() }}</div>
             <div class="profile-role text-muted">{{ primaryRole() }}</div>
             <div class="profile-email text-muted text-sm">{{ email() }}</div>
             <div class="divider"></div>
-            <div class="text-xs fw-600 text-muted mb-8">TARGET ROLES</div>
+            <div class="text-xs fw-600 text-muted mb-8">{{ 'RESUME.TARGET_ROLES' | translate }}</div>
             <div class="chips-wrap">
               @for (r of targetRoles(); track r) {
                 <span class="chip chip-accent">{{ r }}</span>
@@ -94,22 +95,22 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
         <!-- Skills -->
         <div class="section-card">
-          <div class="section-title"><aa-icon name="settings" [size]="16"/> Skills Extracted</div>
+          <div class="section-title"><aa-icon name="settings" [size]="16"/> {{ 'RESUME.SKILLS_SECTION' | translate }}</div>
           <div class="skills-group">
-            <div class="skills-group-title">TECHNICAL</div>
+            <div class="skills-group-title">{{ 'RESUME.TECHNICAL' | translate }}</div>
             <div class="chips-wrap">
               @for (s of techSkills(); track s) { <span class="chip">{{ s }}</span> }
             </div>
           </div>
           <div class="skills-group mt-16">
-            <div class="skills-group-title">SOFT SKILLS</div>
+            <div class="skills-group-title">{{ 'RESUME.SOFT_SKILLS' | translate }}</div>
             <div class="chips-wrap">
               @for (s of softSkills(); track s) { <span class="chip">{{ s }}</span> }
             </div>
           </div>
           @if (tools().length) {
             <div class="skills-group mt-16">
-              <div class="skills-group-title">TOOLS &amp; PLATFORMS</div>
+              <div class="skills-group-title">{{ 'RESUME.TOOLS_PLATFORMS' | translate }}</div>
               <div class="chips-wrap">
                 @for (s of tools(); track s) { <span class="chip">{{ s }}</span> }
               </div>
@@ -119,7 +120,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
         <!-- Experience -->
         <div class="section-card">
-          <div class="section-title"><aa-icon name="briefcase" [size]="16"/> Experience</div>
+          <div class="section-title"><aa-icon name="briefcase" [size]="16"/> {{ 'RESUME.EXPERIENCE_SECTION' | translate }}</div>
           <div class="exp-list">
             @for (exp of experience(); track exp.company) {
               <div class="exp-item">
@@ -128,7 +129,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
                     <div class="exp-title">{{ exp.title }}</div>
                     <div class="exp-company">{{ exp.company }} · {{ exp.duration }}</div>
                   </div>
-                  @if (exp.current) { <span class="current-badge">Current</span> }
+                  @if (exp.current) { <span class="current-badge">{{ 'RESUME.CURRENT_BADGE' | translate }}</span> }
                 </div>
                 <ul class="exp-bullets">
                   @for (a of (exp.achievements || []); track a) { <li>{{ a }}</li> }
@@ -146,7 +147,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         <!-- AI Improvements -->
         @if (improvements().length) {
           <div class="section-card">
-            <div class="section-title"><aa-icon name="sparkles" [size]="16"/> AI Improvements Made</div>
+            <div class="section-title"><aa-icon name="sparkles" [size]="16"/> {{ 'RESUME.AI_IMPROVEMENTS' | translate }}</div>
             <div class="imp-list">
               @for (imp of improvements(); track imp) {
                 <div class="imp-row">
@@ -157,7 +158,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             </div>
             @if (keywords().length) {
               <div class="divider"></div>
-              <div class="text-xs fw-600 text-muted mb-8">ATS KEYWORDS ADDED</div>
+              <div class="text-xs fw-600 text-muted mb-8">{{ 'RESUME.ATS_KEYWORDS' | translate }}</div>
               <div class="chips-wrap">
                 @for (k of keywords(); track k) { <span class="chip chip-accent">{{ k }}</span> }
               </div>
@@ -256,7 +257,7 @@ export class ResumeComponent implements OnInit {
   private opt = () => this.parsed()?.optimizedData;
   private par = () => this.parsed()?.parsedData;
 
-  constructor(private api: ApiService, private toast: ToastService) {}
+  constructor(private api: ApiService, private toast: ToastService, private translate: TranslateService) {}
 
   ngOnInit(): void {
     this.api.getMyResume().subscribe({
@@ -356,9 +357,9 @@ Fleet Management System | Angular + Node.js | Real-time vehicle tracking dashboa
   }
 
   scoreGrade(score: number): string {
-    if (score >= 90) return 'Excellent';
-    if (score >= 80) return 'Very Good';
-    if (score >= 70) return 'Good';
-    return 'Needs Work';
+    if (score >= 90) return this.translate.instant('RESUME.GRADE_EXCELLENT');
+    if (score >= 80) return this.translate.instant('RESUME.GRADE_VERY_GOOD');
+    if (score >= 70) return this.translate.instant('RESUME.GRADE_GOOD');
+    return this.translate.instant('RESUME.GRADE_NEEDS_WORK');
   }
 }

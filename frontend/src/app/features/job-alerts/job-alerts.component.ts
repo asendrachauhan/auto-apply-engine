@@ -7,6 +7,7 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NeoButtonComponent } from '../../shared/components/neo-button/neo-button.component';
@@ -18,19 +19,19 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'aa-job-alerts',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, StatusBadgeComponent, ProgressRingComponent, GhostScoreComponent, IconComponent],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule, NeoButtonComponent, StatusBadgeComponent, ProgressRingComponent, GhostScoreComponent, IconComponent],
   template: `
     <div class="page-container">
 
       <!-- Header -->
       <div class="page-header d-flex justify-between align-center">
         <div>
-          <h1 class="page-title">Job Alerts</h1>
-          <p class="page-subtitle">AI found these jobs, tailored your resume, and prepared the application. You just click &amp; paste.</p>
+          <h1 class="page-title">{{ 'ALERTS.TITLE' | translate }}</h1>
+          <p class="page-subtitle">{{ 'ALERTS.SUBTITLE' | translate }}</p>
         </div>
         <div class="d-flex gap-8 flex-wrap">
-          <aa-button variant="secondary" size="sm" (clicked)="loadAlerts()" icon="refresh">Refresh</aa-button>
-          <aa-button [loading]="running()" (clicked)="runPipeline()" icon="search">Find New Jobs</aa-button>
+          <aa-button variant="secondary" size="sm" (clicked)="loadAlerts()" icon="refresh">{{ 'ALERTS.REFRESH' | translate }}</aa-button>
+          <aa-button [loading]="running()" (clicked)="runPipeline()" icon="search">{{ 'ALERTS.FIND_NEW_JOBS' | translate }}</aa-button>
         </div>
       </div>
 
@@ -40,7 +41,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           <div class="stat-chip neo-sm">
             <aa-icon [name]="s.icon" [size]="16" class="stat-chip-icon"/>
             <span class="stat-chip-val">{{ s.val }}</span>
-            <span class="stat-chip-lbl">{{ s.label }}</span>
+            <span class="stat-chip-lbl">{{ s.label | translate }}</span>
           </div>
         }
       </div>
@@ -48,22 +49,22 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       <!-- How it works banner -->
       @if (alerts().length === 0 && !loading()) {
         <div class="how-it-works neo">
-          <div class="how-title">How Job Alerts Work</div>
+          <div class="how-title">{{ 'ALERTS.HOW_IT_WORKS' | translate }}</div>
           <div class="how-steps">
             @for (step of howSteps; track step.n) {
               <div class="how-step">
                 <div class="how-step-n">{{ step.n }}</div>
                 <aa-icon [name]="step.icon" [size]="24" class="how-step-icon"/>
-                <div class="how-step-text">{{ step.text }}</div>
+                <div class="how-step-text">{{ step.text | translate }}</div>
               </div>
             }
           </div>
           <div class="how-legal">
             <aa-icon name="shield" [size]="14"/>
-            100% legal — we find jobs on Remotive, Himalayas, Arbeitnow, Adzuna and more. We never auto-apply. You stay in full control.
+            {{ 'ALERTS.LEGAL_NOTE' | translate }}
           </div>
           <aa-button [loading]="running()" (clicked)="runPipeline()" icon="search">
-            Find My First Job Matches
+            {{ 'ALERTS.FIND_MATCHES' | translate }}
           </aa-button>
         </div>
       }
@@ -74,11 +75,11 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           @for (f of filters; track f.val) {
             <button class="filter-btn" [class.active]="activeFilter() === f.val"
               (click)="setFilter(f.val)">
-              {{ f.label }}
+              {{ f.label | translate }}
             </button>
           }
           <div class="filter-score">
-            <span class="text-muted text-xs">Min score</span>
+            <span class="text-muted text-xs">{{ 'ALERTS.MIN_SCORE' | translate }}</span>
             <input type="range" min="50" max="95" step="5" [(ngModel)]="minScore"
               (change)="applyFilters()" class="score-range">
             <span class="score-range-val text-accent fw-700">{{ minScore }}%</span>
@@ -145,10 +146,10 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               <!-- Action buttons -->
               <div class="alert-actions" (click)="$event.stopPropagation()">
                 <aa-button variant="primary" size="sm" (clicked)="openAlert(alert)" icon="fileEdit">
-                  View Packet
+                  {{ 'ALERTS.VIEW_PACKET' | translate }}
                 </aa-button>
                 <aa-button variant="secondary" size="sm" (clicked)="openJobLink(alert)" iconRight="externalLink">
-                  Apply
+                  {{ 'ALERTS.APPLY' | translate }}
                 </aa-button>
               </div>
             </div>
@@ -160,8 +161,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       @if (!loading() && alerts().length > 0 && filteredAlerts().length === 0) {
         <div class="empty-filtered neo" style="text-align:center;padding:40px;">
           <aa-icon name="search" [size]="36" style="color:var(--text-light);margin-bottom:10px;"/>
-          <div style="font-weight:700;font-size:15px;color:var(--text);">No alerts match this filter</div>
-          <div class="text-muted text-sm mt-8">Try lowering the minimum score or changing the status filter</div>
+          <div style="font-weight:700;font-size:15px;color:var(--text);">{{ 'ALERTS.NO_ALERTS_MATCH' | translate }}</div>
+          <div class="text-muted text-sm mt-8">{{ 'ALERTS.TRY_LOWER_SCORE' | translate }}</div>
         </div>
       }
     </div>
@@ -191,7 +192,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               <div class="fw-700" style="font-size:16px;color:var(--text);">
                 {{ getScoreLabel(selectedAlert()!.matchScore) }}
               </div>
-              <div class="text-muted text-sm">via {{ platformLabel(selectedAlert()!.source) }}</div>
+              <div class="text-muted text-sm">{{ 'ALERTS.VIA' | translate }} {{ platformLabel(selectedAlert()!.source) }}</div>
               @if (selectedAlert()!.salary) {
                 <div class="text-sm fw-600 text-accent mt-8">{{ selectedAlert()!.salary }}</div>
               }
@@ -206,7 +207,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             @for (tab of tabs; track tab.id) {
               <button class="panel-tab" [class.active]="activeTab() === tab.id"
                 (click)="activeTab.set(tab.id)">
-                <aa-icon [name]="tab.icon" [size]="14"/> {{ tab.label }}
+                <aa-icon [name]="tab.icon" [size]="14"/> {{ tab.label | translate }}
               </button>
             }
           </div>
@@ -215,7 +216,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           @if (activeTab() === 'packet') {
             <div class="tab-content anim-fade-in">
               <div class="packet-section">
-                <div class="packet-section-title">Pre-filled Form Fields</div>
+                <div class="packet-section-title">{{ 'ALERTS.PREFILLED_FIELDS' | translate }}</div>
                 <div class="fields-list">
                   @for (field of selectedAlert()!.prefillFields; track field.fieldName) {
                     <div class="field-row">
@@ -231,24 +232,24 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
               <div class="packet-section">
                 <div class="packet-section-title d-flex justify-between align-center">
-                  Cover Letter
+                  {{ 'ALERTS.COVER_LETTER' | translate }}
                   <aa-button variant="ghost" size="sm"
                     [icon]="copiedField() === 'Cover Letter' ? 'check' : 'copy'"
                     (clicked)="copyText(selectedAlert()!.coverLetter || '', 'Cover Letter')">
-                    {{ copiedField() === 'Cover Letter' ? 'Copied' : 'Copy' }}
+                    {{ copiedField() === 'Cover Letter' ? ('ALERTS.COPIED' | translate) : ('ALERTS.COPY' | translate) }}
                   </aa-button>
                 </div>
                 <div class="cover-letter-box">{{ selectedAlert()!.coverLetter }}</div>
               </div>
 
               <div class="packet-section">
-                <div class="packet-section-title">Copy Everything</div>
+                <div class="packet-section-title">{{ 'ALERTS.COPY_EVERYTHING' | translate }}</div>
                 <div class="copy-all-box">
                   <pre class="prefill-card">{{ selectedAlert()!.prefillCard }}</pre>
                   <aa-button variant="secondary" [fullWidth]="true"
                     [icon]="copiedField() === 'Full Packet' ? 'checkCircle' : 'copy'"
                     (clicked)="copyText(selectedAlert()!.prefillCard || '', 'Full Packet')">
-                    {{ copiedField() === 'Full Packet' ? 'Copied!' : 'Copy Full Packet' }}
+                    {{ copiedField() === 'Full Packet' ? ('ALERTS.COPIED_FULL' | translate) : ('ALERTS.COPY_FULL_PACKET' | translate) }}
                   </aa-button>
                 </div>
               </div>
@@ -259,17 +260,17 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           @if (activeTab() === 'resume') {
             <div class="tab-content anim-fade-in">
               <div class="resume-actions">
-                <aa-button [loading]="loadingPdf()" (clicked)="downloadPDF()" icon="download">Download Tailored PDF</aa-button>
+                <aa-button [loading]="loadingPdf()" (clicked)="downloadPDF()" icon="download">{{ 'ALERTS.DOWNLOAD_PDF' | translate }}</aa-button>
               </div>
               @if (selectedAlert()!.tailoredResume?.summary) {
                 <div class="packet-section">
-                  <div class="packet-section-title">Tailored Summary</div>
+                  <div class="packet-section-title">{{ 'ALERTS.TAILORED_SUMMARY' | translate }}</div>
                   <div class="tailored-summary">{{ selectedAlert()!.tailoredResume!.summary }}</div>
                 </div>
               }
               @if (selectedAlert()!.keywordsToHighlight?.length) {
                 <div class="packet-section">
-                  <div class="packet-section-title">Keywords Added</div>
+                  <div class="packet-section-title">{{ 'ALERTS.KEYWORDS_ADDED' | translate }}</div>
                   <div class="chips-wrap">
                     @for (k of selectedAlert()!.keywordsToHighlight; track k) {
                       <span class="chip chip-accent">{{ k }}</span>
@@ -279,7 +280,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               }
               @if (selectedAlert()!.missingSkills?.length) {
                 <div class="packet-section">
-                  <div class="packet-section-title">Gaps to Address</div>
+                  <div class="packet-section-title">{{ 'ALERTS.GAPS_TO_ADDRESS' | translate }}</div>
                   <div class="chips-wrap">
                     @for (s of selectedAlert()!.missingSkills; track s) {
                       <span class="chip" style="border:1px solid var(--warning);color:var(--warning);">{{ s }}</span>
@@ -294,19 +295,19 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           @if (activeTab() === 'guide') {
             <div class="tab-content anim-fade-in">
               <div class="match-reasons">
-                <div class="packet-section-title">Why You Match</div>
+                <div class="packet-section-title">{{ 'ALERTS.WHY_YOU_MATCH' | translate }}</div>
                 @for (r of selectedAlert()!.matchReasons; track r) {
                   <div class="guide-reason"><aa-icon name="check" [size]="13" class="guide-check"/>{{ r }}</div>
                 }
               </div>
               <div class="apply-steps-guide">
-                <div class="packet-section-title">Steps to Apply</div>
+                <div class="packet-section-title">{{ 'ALERTS.STEPS_TO_APPLY' | translate }}</div>
                 <div class="steps-numbered">
-                  <div class="step-n"><span class="sn">1</span><span>Open the job link</span></div>
-                  <div class="step-n"><span class="sn">2</span><span>Click Apply / Easy Apply</span></div>
-                  <div class="step-n"><span class="sn">3</span><span>Upload tailored resume PDF (download above)</span></div>
-                  <div class="step-n"><span class="sn">4</span><span>Copy-paste from the "Application Packet" tab</span></div>
-                  <div class="step-n"><span class="sn">5</span><span>Submit — usually under 8 minutes</span></div>
+                  <div class="step-n"><span class="sn">1</span><span>{{ 'ALERTS.STEP_OPEN_LINK' | translate }}</span></div>
+                  <div class="step-n"><span class="sn">2</span><span>{{ 'ALERTS.STEP_CLICK_APPLY' | translate }}</span></div>
+                  <div class="step-n"><span class="sn">3</span><span>{{ 'ALERTS.STEP_UPLOAD_PDF' | translate }}</span></div>
+                  <div class="step-n"><span class="sn">4</span><span>{{ 'ALERTS.STEP_COPY_PASTE' | translate }}</span></div>
+                  <div class="step-n"><span class="sn">5</span><span>{{ 'ALERTS.STEP_SUBMIT' | translate }}</span></div>
                 </div>
               </div>
             </div>
@@ -315,15 +316,15 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           <!-- Panel footer actions -->
           <div class="panel-footer-actions">
             <aa-button [fullWidth]="true" (clicked)="openJobLink(selectedAlert()!)" iconRight="externalLink">
-              Open Job &amp; Apply
+              {{ 'ALERTS.OPEN_APPLY' | translate }}
             </aa-button>
             <div class="panel-status-row">
-              <span class="text-muted text-xs">Mark as:</span>
+              <span class="text-muted text-xs">{{ 'ALERTS.MARK_AS' | translate }}</span>
               @for (s of ['applied','ignored']; track s) {
                 <button class="status-chip"
                   [class.active-status]="selectedAlert()!.status === s"
                   (click)="markStatus(selectedAlert()!, s)">
-                  {{ s === 'applied' ? 'Applied' : 'Ignore' }}
+                  {{ s === 'applied' ? ('ALERTS.APPLIED_LABEL' | translate) : ('ALERTS.IGNORE' | translate) }}
                 </button>
               }
             </div>
@@ -470,31 +471,31 @@ export class JobAlertsComponent implements OnInit {
 
   statsData     = signal<any>(null);
   stats = computed(() => [
-    { icon:'target',        val: this.statsData()?.total        || 0, label:'Total Found'  },
-    { icon:'bell',          val: this.statsData()?.notified     || 0, label:'Notified'     },
-    { icon:'checkCircle',   val: this.statsData()?.applied      || 0, label:'You Applied'  },
-    { icon:'star',          val: (this.statsData()?.avgMatchScore||0)+'%', label:'Avg Score'  },
+    { icon:'target',        val: this.statsData()?.total        || 0, label:'ALERTS.TOTAL_FOUND'  },
+    { icon:'bell',          val: this.statsData()?.notified     || 0, label:'ALERTS.NOTIFIED'     },
+    { icon:'checkCircle',   val: this.statsData()?.applied      || 0, label:'ALERTS.YOU_APPLIED'  },
+    { icon:'star',          val: (this.statsData()?.avgMatchScore||0)+'%', label:'ALERTS.AVG_SCORE'  },
   ]);
 
   filters = [
-    { val:'all',      label:'All'       },
-    { val:'notified', label:'New'       },
-    { val:'opened',   label:'Opened'    },
-    { val:'applied',  label:'Applied'   },
-    { val:'ignored',  label:'Ignored'   },
+    { val:'all',      label:'ALERTS.FILTER_ALL'      },
+    { val:'notified', label:'ALERTS.FILTER_NEW'       },
+    { val:'opened',   label:'ALERTS.FILTER_OPENED'    },
+    { val:'applied',  label:'ALERTS.FILTER_APPLIED'   },
+    { val:'ignored',  label:'ALERTS.FILTER_IGNORED'   },
   ];
 
   tabs = [
-    { id:'packet', icon:'fileEdit', label:'Packet' },
-    { id:'resume', icon:'resume',   label:'Resume' },
-    { id:'guide',  icon:'checkCircle', label:'Guide' },
+    { id:'packet', icon:'fileEdit',    label:'ALERTS.TAB_PACKET' },
+    { id:'resume', icon:'resume',      label:'ALERTS.TAB_RESUME' },
+    { id:'guide',  icon:'checkCircle', label:'ALERTS.TAB_GUIDE'  },
   ];
 
   howSteps = [
-    { n:1, icon:'search',        text:'AI discovers new jobs from Remotive, Himalayas, Arbeitnow & Adzuna every 2 hours' },
-    { n:2, icon:'target',        text:'Scores each job against your profile — only high matches reach you' },
-    { n:3, icon:'fileEdit',      text:'Tailors your resume & generates a cover letter specific to that job' },
-    { n:4, icon:'messageCircle', text:'Sends you WhatsApp + Email with the job link, tailored PDF & pre-filled form' },
+    { n:1, icon:'search',        text:'ALERTS.STEP_1' },
+    { n:2, icon:'target',        text:'ALERTS.STEP_2' },
+    { n:3, icon:'fileEdit',      text:'ALERTS.STEP_3' },
+    { n:4, icon:'messageCircle', text:'ALERTS.STEP_4' },
   ];
 
   constructor(private api: ApiService, private toast: ToastService) {}

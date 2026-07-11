@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { interval, Subscription } from 'rxjs';
 import { startWith, switchMap } from 'rxjs/operators';
+import { TranslateModule } from '@ngx-translate/core';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NeoButtonComponent } from '../../shared/components/neo-button/neo-button.component';
@@ -10,58 +11,58 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'aa-automation',
   standalone: true,
-  imports: [CommonModule, NeoButtonComponent, IconComponent],
+  imports: [CommonModule, TranslateModule, NeoButtonComponent, IconComponent],
   template: `
     <div class="page-container">
       <div class="page-header d-flex justify-between align-center">
         <div>
-          <h1 class="page-title">Automation Engine</h1>
-          <p class="page-subtitle">Live view of your automated job hunt</p>
+          <h1 class="page-title">{{ 'AUTOMATION.TITLE' | translate }}</h1>
+          <p class="page-subtitle">{{ 'AUTOMATION.SUBTITLE' | translate }}</p>
         </div>
-        <aa-button [loading]="running()" (clicked)="runNow()" icon="play">Run Now</aa-button>
+        <aa-button [loading]="running()" (clicked)="runNow()" icon="play">{{ 'AUTOMATION.RUN_NOW' | translate }}</aa-button>
       </div>
 
       <div class="grid-2">
         <!-- Session stats -->
         <div class="section-card">
-          <div class="section-title"><aa-icon name="trendingUp" [size]="16"/> Last Session</div>
+          <div class="section-title"><aa-icon name="trendingUp" [size]="16"/> {{ 'AUTOMATION.LAST_SESSION' | translate }}</div>
           @if (lastSession()) {
             <div class="stats-mini grid-3">
               <div class="stat-mini neo-sm">
                 <div class="stat-m-val">{{ lastSession().stats?.jobsFound || 0 }}</div>
-                <div class="stat-m-lbl">Found</div>
+                <div class="stat-m-lbl">{{ 'AUTOMATION.FOUND' | translate }}</div>
               </div>
               <div class="stat-mini neo-sm">
                 <div class="stat-m-val text-accent">{{ lastSession().stats?.jobsMatched || 0 }}</div>
-                <div class="stat-m-lbl">Matched</div>
+                <div class="stat-m-lbl">{{ 'AUTOMATION.MATCHED' | translate }}</div>
               </div>
               <div class="stat-mini neo-sm">
                 <div class="stat-m-val text-success">{{ lastSession().stats?.applicationsSent || 0 }}</div>
-                <div class="stat-m-lbl">Applied</div>
+                <div class="stat-m-lbl">{{ 'AUTOMATION.APPLIED' | translate }}</div>
               </div>
             </div>
             <div class="session-meta">
-              Status: <strong>{{ lastSession().status }}</strong> ·
-              Duration: <strong>{{ duration(lastSession()) }}</strong>
+              {{ 'AUTOMATION.STATUS' | translate }}: <strong>{{ lastSession().status }}</strong> ·
+              {{ 'AUTOMATION.DURATION' | translate }}: <strong>{{ duration(lastSession()) }}</strong>
             </div>
           } @else {
-            <div class="text-muted text-sm" style="padding:20px 0;text-align:center;">No sessions yet. Click "Run Now" above.</div>
+            <div class="text-muted text-sm" style="padding:20px 0;text-align:center;">{{ 'AUTOMATION.NO_SESSIONS' | translate }}</div>
           }
         </div>
 
         <!-- Session history -->
         <div class="section-card">
-          <div class="section-title"><aa-icon name="clock" [size]="16"/> History (Last 10)</div>
+          <div class="section-title"><aa-icon name="clock" [size]="16"/> {{ 'AUTOMATION.HISTORY' | translate }}</div>
           <div class="history-list">
             @for (s of history(); track s._id) {
               <div class="history-row">
                 <div class="h-status" [class]="s.status">{{ s.status }}</div>
-                <div class="h-stats">{{ s.stats?.applicationsSent || 0 }} applied</div>
+                <div class="h-stats">{{ s.stats?.applicationsSent || 0 }} {{ 'AUTOMATION.APPLIED' | translate }}</div>
                 <div class="h-time text-muted text-xs">{{ formatDate(s.startedAt) }}</div>
               </div>
             }
             @if (history().length === 0) {
-              <div class="text-muted text-sm">No history yet</div>
+              <div class="text-muted text-sm">{{ 'AUTOMATION.NO_HISTORY' | translate }}</div>
             }
           </div>
         </div>
@@ -70,21 +71,20 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       <!-- Step progress -->
       <div class="section-card">
         <div class="section-title d-flex align-center gap-8">
-          <aa-icon name="refresh" [size]="16"/> Current Run Status:
+          <aa-icon name="refresh" [size]="16"/> {{ 'AUTOMATION.CURRENT_STATUS' | translate }}:
           <span class="run-status" [class]="runStatus()">{{ runStatus() }}</span>
         </div>
         <div class="steps-grid">
-          @for (step of steps; track step.label) {
+          @for (step of steps; track step.labelKey) {
             <div class="step-card neo-sm" [class]="step.status">
               <aa-icon [name]="step.icon" [size]="22" class="step-icon"/>
-              <div class="step-label">{{ step.label }}</div>
+              <div class="step-label">{{ step.labelKey | translate }}</div>
               <div class="step-status-badge" [class]="step.status">{{ step.status }}</div>
             </div>
           }
         </div>
         <p class="text-muted text-xs mt-16" *ngIf="running()">
-          This step tracker mirrors the automation pipeline's progress while a run is in flight;
-          the numbers above update from the actual session once it completes.
+          {{ 'AUTOMATION.STEP_TRACKER_MSG' | translate }}
         </p>
       </div>
     </div>
@@ -132,11 +132,11 @@ export class AutomationComponent implements OnInit, OnDestroy {
   runStatus   = signal('Idle');
 
   steps = [
-    { icon:'search',        label:'Search Jobs',    status:'pending' },
-    { icon:'sparkles',      label:'AI Match',       status:'pending' },
-    { icon:'fileEdit',      label:'Cover Letters',  status:'pending' },
-    { icon:'send',          label:'Apply',          status:'pending' },
-    { icon:'messageCircle', label:'Notify',         status:'pending' },
+    { icon:'search',        labelKey:'AUTOMATION.SEARCH_JOBS',    status:'pending' },
+    { icon:'sparkles',      labelKey:'AUTOMATION.AI_MATCH',       status:'pending' },
+    { icon:'fileEdit',      labelKey:'AUTOMATION.COVER_LETTERS',  status:'pending' },
+    { icon:'send',          labelKey:'AUTOMATION.APPLY_STEP',     status:'pending' },
+    { icon:'messageCircle', labelKey:'AUTOMATION.NOTIFY',         status:'pending' },
   ];
 
   private subs: Subscription[] = [];

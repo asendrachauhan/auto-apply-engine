@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -10,12 +11,12 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'aa-plans',
   standalone: true,
-  imports: [CommonModule, NeoButtonComponent, IconComponent],
+  imports: [CommonModule, TranslateModule, NeoButtonComponent, IconComponent],
   template: `
     <div class="page-container">
       <div class="page-header" style="text-align:center;">
-        <h1 class="page-title">Plans &amp; Billing</h1>
-        <p class="page-subtitle">Scale your job hunt as far as you need to.</p>
+        <h1 class="page-title">{{ 'PLANS.TITLE' | translate }}</h1>
+        <p class="page-subtitle">{{ 'PLANS.SUBTITLE' | translate }}</p>
       </div>
 
       <div class="plans-grid">
@@ -26,10 +27,10 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         } @else {
         @for (p of plans(); track p.id) {
           <div class="plan-card neo" [class.popular]="p.popular" [class.current]="isCurrent(p.id)">
-            @if (p.popular) { <div class="popular-tag">Most Popular</div> }
+            @if (p.popular) { <div class="popular-tag">{{ 'PLANS.MOST_POPULAR' | translate }}</div> }
             <div class="plan-name">{{ p.name }}</div>
             <div class="plan-price">
-              <span class="price-val">{{ p.price === 0 ? 'Free' : currencySymbol() + p.price }}</span>
+              <span class="price-val">{{ p.price === 0 ? ('COMMON.FREE' | translate) : currencySymbol() + p.price }}</span>
               @if (p.price > 0) { <span class="price-period">/{{ p.period }}</span> }
             </div>
             <ul class="plan-features">
@@ -38,9 +39,9 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               }
             </ul>
             @if (isCurrent(p.id)) {
-              <aa-button variant="secondary" [fullWidth]="true" [disabled]="true">Current Plan</aa-button>
+              <aa-button variant="secondary" [fullWidth]="true" [disabled]="true">{{ 'PLANS.CURRENT_PLAN' | translate }}</aa-button>
             } @else if (p.id === 'free') {
-              <aa-button variant="secondary" [fullWidth]="true" [disabled]="true">Downgrade via support</aa-button>
+              <aa-button variant="secondary" [fullWidth]="true" [disabled]="true">{{ 'PLANS.DOWNGRADE' | translate }}</aa-button>
             } @else {
               <aa-button [fullWidth]="true" [loading]="checkingOut() === p.id" (clicked)="upgrade(p.id)" icon="zap">
                 {{ p.cta }}
@@ -53,10 +54,10 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
       @if (hasPaidPlan()) {
         <div class="section-card manage-card">
-          <div class="section-title"><aa-icon name="settings" [size]="16"/> Manage Billing</div>
-          <p class="text-muted text-sm mb-16">Update your payment method, view invoices, or cancel your subscription.</p>
+          <div class="section-title"><aa-icon name="settings" [size]="16"/> {{ 'PLANS.MANAGE_BILLING' | translate }}</div>
+          <p class="text-muted text-sm mb-16">{{ 'PLANS.MANAGE_BILLING_DESC' | translate }}</p>
           <aa-button variant="secondary" [loading]="loadingPortal()" (clicked)="openPortal()" iconRight="externalLink">
-            Open Billing Portal
+            {{ 'PLANS.BILLING_PORTAL' | translate }}
           </aa-button>
         </div>
       }
