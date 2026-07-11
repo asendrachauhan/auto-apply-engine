@@ -45,7 +45,36 @@
     "SEND_LINK": "リセットリンクを送信",
     "BACK_TO_SIGN_IN": "サインインに戻る",
     "GDPR_CONSENT": "利用規約とプライバシーポリシーに同意します",
-    "MARKETING_CONSENT": "マーケティングメールの受信に同意します（任意）"
+    "MARKETING_CONSENT": "マーケティングメールの受信に同意します（任意）",
+    "ACCEPT_TERMS_TOAST": "続けるには規約に同意してください",
+    "CREATE_FREE_ACCOUNT": "無料アカウントを作成",
+    "EMAIL_VERIFIED_MSG": "自動化と履歴書のアップロードが解除されました。",
+    "EMAIL_VERIFIED_TITLE": "メール確認済み",
+    "FORGOT_SENT": "<strong>{{email}}</strong> のアカウントが存在する場合、リセットリンクが送信されます。受信箱をご確認ください。",
+    "FORGOT_SUBTITLE": "リセットリンクをメールでお送りします",
+    "GDPR_TERMS_CONSENT": "<a href=\"#\">利用規約</a>と<a href=\"#\">プライバシーポリシー</a>に同意し、データ処理（GDPR）に同意します。",
+    "GO_TO_DASHBOARD": "ダッシュボードへ",
+    "GO_TO_SIGN_IN": "サインインへ",
+    "HIDE_PASSWORD": "パスワードを隠す",
+    "LOGIN_FAILED": "ログインに失敗しました",
+    "MARKETING_CONSENT_ALT": "製品の最新情報を時々お送りします（任意）",
+    "MISSING_TOKEN": "このリセットリンクにはトークンがありません。サインインページから新しいリンクをリクエストしてください。",
+    "NEW_PASSWORD": "新しいパスワード",
+    "NEW_PASSWORD_SUBTITLE": "アカウントの新しい強力なパスワードを選択してください",
+    "NO_VERIFY_TOKEN": "確認トークンが提供されませんでした。",
+    "PASSWORDS_MISMATCH": "パスワードが一致しません",
+    "PASSWORD_PLACEHOLDER": "最低8文字、大文字1つ、数字1つ",
+    "REGISTRATION_FAILED": "登録に失敗しました",
+    "REPEAT_PASSWORD_PLACEHOLDER": "パスワードを再入力",
+    "REQUEST_NEW_LINK": "新しいリンクをリクエスト",
+    "RESET_BTN": "パスワードをリセット",
+    "RESET_FAILED": "リセットに失敗しました—リンクが期限切れの可能性があります",
+    "RESET_SUCCESS": "パスワードがリセットされました。今すぐサインインできます。",
+    "SHOW_PASSWORD": "パスワードを表示",
+    "VERIFYING_EMAIL": "メールを確認中…",
+    "VERIFY_FAILED_TITLE": "確認に失敗しました",
+    "VERIFY_LINK_INVALID": "確認リンクが無効か期限切れです。",
+    "SET_NEW_PASSWORD_TITLE": "新しいパスワードを設定"
   },
   "DASHBOARD": {
     "TITLE": "ダッシュボード",
@@ -179,10 +208,22 @@
     "EXPORT_DATA": "データをエクスポート",
     "EXPORT_SUCCESS": "データエクスポートがダウンロードされました"
   },
-  "EU": { "TITLE": "EU求人", "SUBTITLE": "欧州連合公式求人ポータル。" },
-  "ONBOARDING": { "TITLE": "プロフィールを設定しましょう", "SUBTITLE": "求職活動をパーソナライズするためのいくつかのステップ" },
-  "PROFILE": { "TITLE": "マイプロフィール", "SUBTITLE": "個人情報を管理" },
-  "ANALYTICS": { "TITLE": "分析", "SUBTITLE": "求職活動のパフォーマンスを追跡" },
+  "EU": {
+    "TITLE": "EU求人",
+    "SUBTITLE": "欧州連合公式求人ポータル。"
+  },
+  "ONBOARDING": {
+    "TITLE": "プロフィールを設定しましょう",
+    "SUBTITLE": "求職活動をパーソナライズするためのいくつかのステップ"
+  },
+  "PROFILE": {
+    "TITLE": "マイプロフィール",
+    "SUBTITLE": "個人情報を管理"
+  },
+  "ANALYTICS": {
+    "TITLE": "分析",
+    "SUBTITLE": "求職活動のパフォーマンスを追跡"
+  },
   "COMMON": {
     "LOADING": "読み込み中...",
     "ERROR": "問題が発生しました",

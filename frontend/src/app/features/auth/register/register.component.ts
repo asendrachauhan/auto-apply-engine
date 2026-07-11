@@ -7,36 +7,37 @@ import { ToastService } from '../../../core/services/toast.service';
 import { NeoButtonComponent } from '../../../shared/components/neo-button/neo-button.component';
 import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, ThemeToggleComponent, IconComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, ThemeToggleComponent, IconComponent, TranslateModule],
   template: `
     <div class="auth-page">
       <div class="auth-card neo anim-fade-in">
         <div class="auth-header">
           <div class="logo-icon"><aa-icon name="zap" [size]="24"/></div>
-          <h1 class="auth-title">Create Account</h1>
-          <p class="auth-sub">Start automating your job hunt — free forever</p>
+          <h1 class="auth-title">{{ 'AUTH.REGISTER_TITLE' | translate }}</h1>
+          <p class="auth-sub">{{ 'AUTH.REGISTER_SUBTITLE' | translate }}</p>
           <div class="theme-wrap"><aa-theme-toggle/></div>
         </div>
 
         <form (ngSubmit)="onSubmit()" class="auth-form">
           <div class="input-group">
-            <label class="input-label">Full Name</label>
-            <input class="neo-input" type="text" [(ngModel)]="name" name="name" placeholder="Your Name" required>
+            <label class="input-label">{{ 'AUTH.FULL_NAME' | translate }}</label>
+            <input class="neo-input" type="text" [(ngModel)]="name" name="name" [placeholder]="'AUTH.NAME_PLACEHOLDER' | translate" required>
           </div>
           <div class="input-group">
-            <label class="input-label">Email</label>
-            <input class="neo-input" type="email" [(ngModel)]="email" name="email" placeholder="you@email.com" required>
+            <label class="input-label">{{ 'AUTH.EMAIL' | translate }}</label>
+            <input class="neo-input" type="email" [(ngModel)]="email" name="email" [placeholder]="'AUTH.EMAIL_PLACEHOLDER' | translate" required>
           </div>
           <div class="input-group">
-            <label class="input-label">Password</label>
+            <label class="input-label">{{ 'AUTH.PASSWORD' | translate }}</label>
             <div class="password-wrap">
               <input class="neo-input" [type]="showPwd ? 'text' : 'password'" [(ngModel)]="password" name="password"
-                placeholder="Min 8 chars, 1 upper, 1 number" required minlength="8">
-              <button type="button" class="pwd-toggle" (click)="showPwd = !showPwd" [attr.aria-label]="showPwd ? 'Hide password' : 'Show password'">
+                [placeholder]="'AUTH.PASSWORD_PLACEHOLDER' | translate" required minlength="8">
+              <button type="button" class="pwd-toggle" (click)="showPwd = !showPwd" [attr.aria-label]="(showPwd ? 'AUTH.HIDE_PASSWORD' : 'AUTH.SHOW_PASSWORD') | translate">
                 <aa-icon [name]="showPwd ? 'eyeOff' : 'eye'" [size]="16"/>
               </button>
             </div>
@@ -44,23 +45,20 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 
           <label class="consent-row">
             <input type="checkbox" [(ngModel)]="gdprConsent" name="gdprConsent" required>
-            <span class="text-xs">
-              I agree to the <a href="#" (click)="$event.preventDefault()">Terms</a> and
-              <a href="#" (click)="$event.preventDefault()">Privacy Policy</a>, and consent to processing of my data (GDPR).
-            </span>
+            <span class="text-xs" [innerHTML]="'AUTH.GDPR_TERMS_CONSENT' | translate"></span>
           </label>
           <label class="consent-row">
             <input type="checkbox" [(ngModel)]="marketingConsent" name="marketingConsent">
-            <span class="text-xs">Send me occasional product updates (optional)</span>
+            <span class="text-xs">{{ 'AUTH.MARKETING_CONSENT_ALT' | translate }}</span>
           </label>
 
           <aa-button type="submit" [fullWidth]="true" [loading]="loading()" [disabled]="!gdprConsent" (clicked)="onSubmit()">
-            Create Free Account
+            {{ 'AUTH.CREATE_FREE_ACCOUNT' | translate }}
           </aa-button>
         </form>
 
         <div class="auth-footer">
-          Already have an account? <a routerLink="/auth/login" class="link">Sign in</a>
+          {{ 'AUTH.HAS_ACCOUNT' | translate }} <a routerLink="/auth/login" class="link">{{ 'AUTH.SIGN_IN_LINK' | translate }}</a>
         </div>
       </div>
     </div>
@@ -95,11 +93,11 @@ export class RegisterComponent {
   showPwd = false;
   loading = signal(false);
 
-  constructor(private auth: AuthService, private router: Router, private toast: ToastService) {}
+  constructor(private auth: AuthService, private router: Router, private toast: ToastService, private translate: TranslateService) {}
 
   onSubmit(): void {
     if (!this.name || !this.email || !this.password) return;
-    if (!this.gdprConsent) { this.toast.error('Please accept the terms to continue'); return; }
+    if (!this.gdprConsent) { this.toast.error(this.translate.instant('AUTH.ACCEPT_TERMS_TOAST')); return; }
     this.loading.set(true);
     this.auth.register({
       name: this.name, email: this.email, password: this.password,
@@ -107,7 +105,7 @@ export class RegisterComponent {
     }).subscribe({
       next: () => this.router.navigate(['/onboarding']),
       error: (e) => {
-        this.toast.error(e.error?.message || (e.error?.errors?.[0]) || 'Registration failed');
+        this.toast.error(e.error?.message || (e.error?.errors?.[0]) || this.translate.instant('AUTH.REGISTRATION_FAILED'));
         this.loading.set(false);
       },
     });

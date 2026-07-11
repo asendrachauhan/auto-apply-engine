@@ -4,32 +4,33 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NeoButtonComponent } from '../../../shared/components/neo-button/neo-button.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-verify-email',
   standalone: true,
-  imports: [CommonModule, RouterModule, NeoButtonComponent, IconComponent],
+  imports: [CommonModule, RouterModule, NeoButtonComponent, IconComponent, TranslateModule],
   template: `
     <div class="auth-page">
       <div class="auth-card neo anim-fade-in">
         @if (state() === 'checking') {
           <div class="state-block">
             <div class="spinner"></div>
-            <p class="text-sm mt-16">Verifying your email…</p>
+            <p class="text-sm mt-16">{{ 'AUTH.VERIFYING_EMAIL' | translate }}</p>
           </div>
         } @else if (state() === 'success') {
           <div class="state-block">
             <aa-icon name="checkCircle" [size]="40" class="icon-success"/>
-            <h1 class="auth-title mt-16">Email Verified</h1>
-            <p class="text-sm text-muted">Automation and resume upload are now unlocked.</p>
-            <a routerLink="/dashboard"><button class="link-btn">Go to Dashboard</button></a>
+            <h1 class="auth-title mt-16">{{ 'AUTH.EMAIL_VERIFIED_TITLE' | translate }}</h1>
+            <p class="text-sm text-muted">{{ 'AUTH.EMAIL_VERIFIED_MSG' | translate }}</p>
+            <a routerLink="/dashboard"><button class="link-btn">{{ 'AUTH.GO_TO_DASHBOARD' | translate }}</button></a>
           </div>
         } @else {
           <div class="state-block">
             <aa-icon name="alertTriangle" [size]="40" class="icon-warn"/>
-            <h1 class="auth-title mt-16">Verification Failed</h1>
+            <h1 class="auth-title mt-16">{{ 'AUTH.VERIFY_FAILED_TITLE' | translate }}</h1>
             <p class="text-sm text-muted">{{ errorMsg() }}</p>
-            <a routerLink="/auth/login"><button class="link-btn">Back to Sign In</button></a>
+            <a routerLink="/auth/login"><button class="link-btn">{{ 'AUTH.BACK_TO_SIGN_IN' | translate }}</button></a>
           </div>
         }
       </div>
@@ -53,18 +54,20 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 })
 export class VerifyEmailComponent implements OnInit {
   state = signal<'checking'|'success'|'error'>('checking');
-  errorMsg = signal('The verification link is invalid or has expired.');
+  errorMsg = signal('');
 
-  constructor(private route: ActivatedRoute, private auth: AuthService) {}
+  constructor(private route: ActivatedRoute, private auth: AuthService, private translate: TranslateService) {
+    this.errorMsg.set(this.translate.instant('AUTH.VERIFY_LINK_INVALID'));
+  }
 
   ngOnInit(): void {
     const token = this.route.snapshot.queryParamMap.get('token');
-    if (!token) { this.state.set('error'); this.errorMsg.set('No verification token was provided.'); return; }
+    if (!token) { this.state.set('error'); this.errorMsg.set(this.translate.instant('AUTH.NO_VERIFY_TOKEN')); return; }
     this.auth.verifyEmail(token).subscribe({
       next: () => this.state.set('success'),
       error: (e) => {
         this.state.set('error');
-        this.errorMsg.set(e.error?.message || 'The verification link is invalid or has expired.');
+        this.errorMsg.set(e.error?.message || this.translate.instant('AUTH.VERIFY_LINK_INVALID'));
       },
     });
   }

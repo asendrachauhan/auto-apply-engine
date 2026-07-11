@@ -7,50 +7,51 @@ import { ToastService } from '../../../core/services/toast.service';
 import { NeoButtonComponent } from '../../../shared/components/neo-button/neo-button.component';
 import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, ThemeToggleComponent, IconComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, ThemeToggleComponent, IconComponent, TranslateModule],
   template: `
     <div class="auth-page">
       <div class="auth-card neo anim-fade-in">
 
         <div class="auth-header">
           <div class="logo-icon"><aa-icon name="zap" [size]="24"/></div>
-          <h1 class="auth-title">AutoApply AI</h1>
-          <p class="auth-sub">Sign in to your account</p>
+          <h1 class="auth-title">{{ 'AUTH.SIGN_IN_TITLE' | translate }}</h1>
+          <p class="auth-sub">{{ 'AUTH.SIGN_IN_SUBTITLE' | translate }}</p>
           <div class="theme-wrap"><aa-theme-toggle/></div>
         </div>
 
         <form (ngSubmit)="onSubmit()" class="auth-form">
           <div class="input-group">
-            <label class="input-label">Email</label>
+            <label class="input-label">{{ 'AUTH.EMAIL' | translate }}</label>
             <input class="neo-input" type="email" [(ngModel)]="email" name="email"
-              placeholder="you@email.com" required autocomplete="email">
+              [placeholder]="'AUTH.EMAIL_PLACEHOLDER' | translate" required autocomplete="email">
           </div>
 
           <div class="input-group">
-            <label class="input-label">Password</label>
+            <label class="input-label">{{ 'AUTH.PASSWORD' | translate }}</label>
             <div class="password-wrap">
               <input class="neo-input" [type]="showPwd ? 'text' : 'password'"
                 [(ngModel)]="password" name="password" placeholder="••••••••"
                 required autocomplete="current-password">
-              <button type="button" class="pwd-toggle" (click)="showPwd = !showPwd" [attr.aria-label]="showPwd ? 'Hide password' : 'Show password'">
+              <button type="button" class="pwd-toggle" (click)="showPwd = !showPwd" [attr.aria-label]="(showPwd ? 'AUTH.HIDE_PASSWORD' : 'AUTH.SHOW_PASSWORD') | translate">
                 <aa-icon [name]="showPwd ? 'eyeOff' : 'eye'" [size]="16"/>
               </button>
             </div>
-            <div class="forgot-link"><a routerLink="/auth/forgot-password" class="link">Forgot password?</a></div>
+            <div class="forgot-link"><a routerLink="/auth/forgot-password" class="link">{{ 'AUTH.FORGOT_PASSWORD' | translate }}</a></div>
           </div>
 
           <aa-button type="submit" [fullWidth]="true" [loading]="loading()" (clicked)="onSubmit()">
-            Sign In
+            {{ 'AUTH.SIGN_IN_BTN' | translate }}
           </aa-button>
         </form>
 
         <div class="auth-footer">
-          Don't have an account?
-          <a routerLink="/auth/register" class="link">Create one free</a>
+          {{ 'AUTH.NO_ACCOUNT' | translate }}
+          <a routerLink="/auth/register" class="link">{{ 'AUTH.CREATE_FREE' | translate }}</a>
         </div>
       </div>
     </div>
@@ -94,7 +95,7 @@ export class LoginComponent {
   showPwd  = false;
   loading  = signal(false);
 
-  constructor(private auth: AuthService, private router: Router, private toast: ToastService) {}
+  constructor(private auth: AuthService, private router: Router, private toast: ToastService, private translate: TranslateService) {}
 
   onSubmit(): void {
     if (!this.email || !this.password) return;
@@ -102,7 +103,7 @@ export class LoginComponent {
     this.auth.login(this.email, this.password).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (e) => {
-        this.toast.error(e.error?.message || 'Login failed');
+        this.toast.error(e.error?.message || this.translate.instant('AUTH.LOGIN_FAILED'));
         this.loading.set(false);
       },
     });

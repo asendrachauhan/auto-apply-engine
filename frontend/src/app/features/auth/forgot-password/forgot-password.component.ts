@@ -6,40 +6,41 @@ import { AuthService } from '../../../core/services/auth.service';
 import { NeoButtonComponent } from '../../../shared/components/neo-button/neo-button.component';
 import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-forgot-password',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, ThemeToggleComponent, IconComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, ThemeToggleComponent, IconComponent, TranslateModule],
   template: `
     <div class="auth-page">
       <div class="auth-card neo anim-fade-in">
         <div class="auth-header">
           <div class="logo-icon"><aa-icon name="shield" [size]="24"/></div>
-          <h1 class="auth-title">Reset Password</h1>
-          <p class="auth-sub">We'll email you a reset link</p>
+          <h1 class="auth-title">{{ 'AUTH.RESET_TITLE' | translate }}</h1>
+          <p class="auth-sub">{{ 'AUTH.FORGOT_SUBTITLE' | translate }}</p>
           <div class="theme-wrap"><aa-theme-toggle/></div>
         </div>
 
         @if (!sent()) {
           <form (ngSubmit)="onSubmit()" class="auth-form">
             <div class="input-group">
-              <label class="input-label">Email</label>
-              <input class="neo-input" type="email" [(ngModel)]="email" name="email" placeholder="you@email.com" required>
+              <label class="input-label">{{ 'AUTH.EMAIL' | translate }}</label>
+              <input class="neo-input" type="email" [(ngModel)]="email" name="email" [placeholder]="'AUTH.EMAIL_PLACEHOLDER' | translate" required>
             </div>
             <aa-button type="submit" [fullWidth]="true" [loading]="loading()" (clicked)="onSubmit()">
-              Send Reset Link
+              {{ 'AUTH.SEND_LINK' | translate }}
             </aa-button>
           </form>
         } @else {
           <div class="sent-state">
             <aa-icon name="checkCircle" [size]="36" class="sent-icon"/>
-            <p class="text-sm">If an account exists for <strong>{{ email }}</strong>, a reset link is on its way. Check your inbox.</p>
+            <p class="text-sm" [innerHTML]="'AUTH.FORGOT_SENT' | translate:{email: email}"></p>
           </div>
         }
 
         <div class="auth-footer">
-          <a routerLink="/auth/login" class="link">Back to sign in</a>
+          <a routerLink="/auth/login" class="link">{{ 'AUTH.BACK_TO_SIGN_IN' | translate }}</a>
         </div>
       </div>
     </div>

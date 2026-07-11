@@ -45,7 +45,36 @@
     "SEND_LINK": "Enviar link",
     "BACK_TO_SIGN_IN": "Voltar ao login",
     "GDPR_CONSENT": "Concordo com os Termos de Serviço e Política de Privacidade",
-    "MARKETING_CONSENT": "Concordo em receber e-mails de marketing (opcional)"
+    "MARKETING_CONSENT": "Concordo em receber e-mails de marketing (opcional)",
+    "ACCEPT_TERMS_TOAST": "Aceite os termos para continuar",
+    "CREATE_FREE_ACCOUNT": "Criar conta gratuita",
+    "EMAIL_VERIFIED_MSG": "Automação e envio de currículo já estão desbloqueados.",
+    "EMAIL_VERIFIED_TITLE": "E-mail verificado",
+    "FORGOT_SENT": "Se existir uma conta para <strong>{{email}}</strong>, um link de redefinição está a caminho. Verifique sua caixa de entrada.",
+    "FORGOT_SUBTITLE": "Enviaremos um link de redefinição por e-mail",
+    "GDPR_TERMS_CONSENT": "Concordo com os <a href=\"#\">Termos</a> e a <a href=\"#\">Política de Privacidade</a>, e consinto o tratamento dos meus dados (GDPR).",
+    "GO_TO_DASHBOARD": "Ir para o painel",
+    "GO_TO_SIGN_IN": "Ir para login",
+    "HIDE_PASSWORD": "Ocultar senha",
+    "LOGIN_FAILED": "Falha no login",
+    "MARKETING_CONSENT_ALT": "Enviar-me atualizações ocasionais do produto (opcional)",
+    "MISSING_TOKEN": "Este link de redefinição está sem o token. Solicite um novo na página de login.",
+    "NEW_PASSWORD": "Nova senha",
+    "NEW_PASSWORD_SUBTITLE": "Escolha uma nova senha forte para sua conta",
+    "NO_VERIFY_TOKEN": "Nenhum token de verificação foi fornecido.",
+    "PASSWORDS_MISMATCH": "As senhas não coincidem",
+    "PASSWORD_PLACEHOLDER": "Mín. 8 caracteres, 1 maiúscula, 1 número",
+    "REGISTRATION_FAILED": "Falha no cadastro",
+    "REPEAT_PASSWORD_PLACEHOLDER": "Repetir senha",
+    "REQUEST_NEW_LINK": "Solicitar novo link",
+    "RESET_BTN": "Redefinir senha",
+    "RESET_FAILED": "Falha na redefinição — o link pode ter expirado",
+    "RESET_SUCCESS": "Senha redefinida. Você já pode entrar.",
+    "SHOW_PASSWORD": "Mostrar senha",
+    "VERIFYING_EMAIL": "Verificando seu e-mail…",
+    "VERIFY_FAILED_TITLE": "Verificação falhou",
+    "VERIFY_LINK_INVALID": "O link de verificação é inválido ou expirou.",
+    "SET_NEW_PASSWORD_TITLE": "Definir nova senha"
   },
   "DASHBOARD": {
     "TITLE": "Painel",
@@ -179,10 +208,22 @@
     "EXPORT_DATA": "Exportar meus dados",
     "EXPORT_SUCCESS": "Exportação de dados baixada"
   },
-  "EU": { "TITLE": "Carreiras UE", "SUBTITLE": "Portal oficial de empregos da União Europeia." },
-  "ONBOARDING": { "TITLE": "Vamos configurar seu perfil", "SUBTITLE": "Apenas alguns passos para personalizar sua busca" },
-  "PROFILE": { "TITLE": "Meu perfil", "SUBTITLE": "Gerencie suas informações pessoais" },
-  "ANALYTICS": { "TITLE": "Análises", "SUBTITLE": "Acompanhe o desempenho da sua busca" },
+  "EU": {
+    "TITLE": "Carreiras UE",
+    "SUBTITLE": "Portal oficial de empregos da União Europeia."
+  },
+  "ONBOARDING": {
+    "TITLE": "Vamos configurar seu perfil",
+    "SUBTITLE": "Apenas alguns passos para personalizar sua busca"
+  },
+  "PROFILE": {
+    "TITLE": "Meu perfil",
+    "SUBTITLE": "Gerencie suas informações pessoais"
+  },
+  "ANALYTICS": {
+    "TITLE": "Análises",
+    "SUBTITLE": "Acompanhe o desempenho da sua busca"
+  },
   "COMMON": {
     "LOADING": "Carregando...",
     "ERROR": "Algo deu errado",

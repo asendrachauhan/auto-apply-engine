@@ -53,7 +53,7 @@
     "REQUEST_NEW_LINK": "申请新链接",
     "RESET_SUCCESS": "密码已重置。您现在可以登录。",
     "GO_TO_SIGN_IN": "前往登录",
-    "VERIFYING_EMAIL": "正在验证您的邮箱\u2026",
+    "VERIFYING_EMAIL": "正在验证您的邮箱…",
     "EMAIL_VERIFIED_TITLE": "邮箱已验证",
     "EMAIL_VERIFIED_MSG": "自动化和简历上传功能现已解锁。",
     "VERIFY_FAILED_TITLE": "验证失败",
@@ -66,7 +66,15 @@
     "SHOW_PASSWORD": "显示密码",
     "GDPR_TERMS_CONSENT": "我同意<a href=\"#\">服务条款</a>和<a href=\"#\">隐私政策</a>，并同意处理我的数据（GDPR）。",
     "MARKETING_CONSENT_ALT": "偶尔向我发送产品更新（可选）",
-    "CREATE_FREE_ACCOUNT": "免费创建账户"
+    "CREATE_FREE_ACCOUNT": "免费创建账户",
+    "ACCEPT_TERMS_TOAST": "请接受条款以继续",
+    "LOGIN_FAILED": "登录失败",
+    "NO_VERIFY_TOKEN": "未提供验证令牌。",
+    "PASSWORDS_MISMATCH": "密码不匹配",
+    "REGISTRATION_FAILED": "注册失败",
+    "RESET_FAILED": "重置失败 — 链接可能已过期",
+    "VERIFY_LINK_INVALID": "验证链接无效或已过期。",
+    "SET_NEW_PASSWORD_TITLE": "设置新密码"
   },
   "DASHBOARD": {
     "TITLE": "仪表盘",
@@ -190,10 +198,22 @@
     "EXPORT_DATA": "导出我的数据",
     "EXPORT_SUCCESS": "数据导出已下载"
   },
-  "EU": { "TITLE": "欧盟职位", "SUBTITLE": "欧盟官方职位门户。" },
-  "ONBOARDING": { "TITLE": "让我们设置您的个人资料", "SUBTITLE": "只需几步即可个性化您的求职" },
-  "PROFILE": { "TITLE": "我的个人资料", "SUBTITLE": "管理您的个人信息" },
-  "ANALYTICS": { "TITLE": "数据分析", "SUBTITLE": "追踪您的求职表现" },
+  "EU": {
+    "TITLE": "欧盟职位",
+    "SUBTITLE": "欧盟官方职位门户。"
+  },
+  "ONBOARDING": {
+    "TITLE": "让我们设置您的个人资料",
+    "SUBTITLE": "只需几步即可个性化您的求职"
+  },
+  "PROFILE": {
+    "TITLE": "我的个人资料",
+    "SUBTITLE": "管理您的个人信息"
+  },
+  "ANALYTICS": {
+    "TITLE": "数据分析",
+    "SUBTITLE": "追踪您的求职表现"
+  },
   "COMMON": {
     "LOADING": "加载中...",
     "ERROR": "出了些问题",
