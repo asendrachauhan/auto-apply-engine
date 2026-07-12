@@ -1,17 +1,18 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../core/services/api.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'aa-analytics',
   standalone: true,
-  imports: [CommonModule, IconComponent],
+  imports: [CommonModule, TranslateModule, IconComponent],
   template: `
     <div class="page-container">
       <div class="page-header">
-        <h1 class="page-title">Analytics</h1>
-        <p class="page-subtitle">Built from your last {{ apps().length }} applications.</p>
+        <h1 class="page-title">{{ 'ANALYTICS.PAGE_TITLE' | translate }}</h1>
+        <p class="page-subtitle">{{ 'ANALYTICS.PAGE_SUBTITLE' | translate: { count: apps().length } }}</p>
       </div>
 
       @if (loading()) {
@@ -21,8 +22,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       } @else if (apps().length === 0) {
         <div class="empty-state neo" style="text-align:center;padding:56px;">
           <aa-icon name="analytics" [size]="44" style="color:var(--text-light);margin-bottom:14px;"/>
-          <div style="font-size:16px;font-weight:700;color:var(--text);">No data yet</div>
-          <div class="text-muted text-sm mt-8">Once automation starts applying, your analytics will appear here.</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);">{{ 'ANALYTICS.NO_DATA_TITLE' | translate }}</div>
+          <div class="text-muted text-sm mt-8">{{ 'ANALYTICS.NO_DATA_SUBTITLE' | translate }}</div>
         </div>
       } @else {
 
@@ -30,26 +31,26 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         <div class="stats-grid">
           <div class="stat-card neo">
             <div class="stat-value">{{ apps().length }}</div>
-            <div class="stat-label">Applications Tracked</div>
+            <div class="stat-label">{{ 'ANALYTICS.APPS_TRACKED' | translate }}</div>
           </div>
           <div class="stat-card neo">
             <div class="stat-value text-accent">{{ avgMatchScore() }}%</div>
-            <div class="stat-label">Avg Match Score</div>
+            <div class="stat-label">{{ 'ANALYTICS.AVG_MATCH_SCORE' | translate }}</div>
           </div>
           <div class="stat-card neo">
             <div class="stat-value text-success">{{ interviewRate() }}%</div>
-            <div class="stat-label">Interview Rate</div>
+            <div class="stat-label">{{ 'ANALYTICS.INTERVIEW_RATE' | translate }}</div>
           </div>
           <div class="stat-card neo">
             <div class="stat-value">{{ avgGhostScore() }}</div>
-            <div class="stat-label">Avg Ghost Score</div>
+            <div class="stat-label">{{ 'ANALYTICS.AVG_GHOST_SCORE' | translate }}</div>
           </div>
         </div>
 
         <div class="grid-2">
           <!-- Applications over time -->
           <div class="section-card">
-            <div class="section-title"><aa-icon name="trendingUp" [size]="16"/> Applications — Last 14 Days</div>
+            <div class="section-title"><aa-icon name="trendingUp" [size]="16"/> {{ 'ANALYTICS.APPS_LAST_14' | translate }}</div>
             <div class="bar-chart">
               @for (d of dailyCounts(); track d.label) {
                 <div class="bar-col">
@@ -62,7 +63,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
           <!-- Status breakdown -->
           <div class="section-card">
-            <div class="section-title"><aa-icon name="briefcase" [size]="16"/> Status Breakdown</div>
+            <div class="section-title"><aa-icon name="briefcase" [size]="16"/> {{ 'ANALYTICS.STATUS_BREAKDOWN' | translate }}</div>
             <div class="status-bars">
               @for (s of statusBreakdown(); track s.status) {
                 <div class="status-bar-row">
@@ -80,11 +81,11 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         <div class="grid-2">
           <!-- Source breakdown -->
           <div class="section-card">
-            <div class="section-title"><aa-icon name="target" [size]="16"/> Applications by Source</div>
+            <div class="section-title"><aa-icon name="target" [size]="16"/> {{ 'ANALYTICS.APPS_BY_SOURCE' | translate }}</div>
             <div class="status-bars">
               @for (s of sourceBreakdown(); track s.source) {
                 <div class="status-bar-row">
-                  <span class="status-bar-label">{{ s.source || 'Unknown' }}</span>
+                  <span class="status-bar-label">{{ s.source || unknownLabel }}</span>
                   <div class="status-bar-track">
                     <div class="status-bar-fill" [style.width.%]="s.pct" style="background:var(--accent);"></div>
                   </div>
@@ -96,11 +97,11 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
           <!-- Match score distribution -->
           <div class="section-card">
-            <div class="section-title"><aa-icon name="star" [size]="16"/> Match Score Distribution</div>
+            <div class="section-title"><aa-icon name="star" [size]="16"/> {{ 'ANALYTICS.MATCH_SCORE_DIST' | translate }}</div>
             <div class="bar-chart small">
               @for (b of scoreBuckets(); track b.label) {
                 <div class="bar-col">
-                  <div class="bar" [style.height.%]="b.pct" [style.background]="b.color" [title]="b.count + ' applications'"></div>
+                  <div class="bar" [style.height.%]="b.pct" [style.background]="b.color" [title]="b.count + ' ' + applicationsLabel"></div>
                   <div class="bar-label">{{ b.label }}</div>
                 </div>
               }
@@ -138,9 +139,15 @@ export class AnalyticsComponent implements OnInit {
   loading = signal(true);
   apps    = signal<any[]>([]);
 
-  constructor(private api: ApiService) {}
+  unknownLabel      = '';
+  applicationsLabel = '';
+
+  constructor(private api: ApiService, private translate: TranslateService) {}
 
   ngOnInit(): void {
+    this.unknownLabel      = this.translate.instant('ANALYTICS.UNKNOWN');
+    this.applicationsLabel = this.translate.instant('ANALYTICS.APPLICATIONS_LABEL');
+
     this.api.getApplications({ limit: 200 }).subscribe({
       next: (r: any) => { this.apps.set(r.data || []); this.loading.set(false); },
       error: () => this.loading.set(false),

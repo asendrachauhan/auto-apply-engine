@@ -24,14 +24,25 @@ export class AuthService {
   private _user  = signal<User | null>(null);
 
   currentUser = this._user.asReadonly();
-
-  constructor() { this.restoreSession(); }
+  private _sessionReady = signal(false);
+  sessionReady = this._sessionReady.asReadonly();
 
   private get api() { return `${environment.apiUrl}/auth`; }
 
-  private restoreSession() {
+  /**
+   * Resolves the persisted session (if any) before the app finishes
+   * bootstrapping. Wired up via APP_INITIALIZER in app.config.ts so route
+   * guards never run against a `currentUser` that hasn't loaded yet.
+   */
+  init(): Promise<void> {
     const token = this.getAccessToken();
-    if (token) this.fetchMe().subscribe({ error: () => this.clearSession() });
+    if (!token) { this._sessionReady.set(true); return Promise.resolve(); }
+    return new Promise(resolve => {
+      this.fetchMe().subscribe({
+        next: () => { this._sessionReady.set(true); resolve(); },
+        error: () => { this.clearSession(); this._sessionReady.set(true); resolve(); },
+      });
+    });
   }
 
   login(email: string, password: string) {

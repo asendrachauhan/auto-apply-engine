@@ -5,15 +5,16 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { NeoButtonComponent } from '../../../shared/components/neo-button/neo-button.component';
-import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { AuthHeaderComponent } from '../../../shared/components/auth-header/auth-header.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, ThemeToggleComponent, IconComponent, TranslateModule],
+  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, IconComponent, AuthHeaderComponent, TranslateModule],
   template: `
+    <aa-auth-header/>
     <div class="auth-page">
       <div class="auth-card neo anim-fade-in">
 
@@ -21,7 +22,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <div class="logo-icon"><aa-icon name="zap" [size]="24"/></div>
           <h1 class="auth-title">{{ 'AUTH.SIGN_IN_TITLE' | translate }}</h1>
           <p class="auth-sub">{{ 'AUTH.SIGN_IN_SUBTITLE' | translate }}</p>
-          <div class="theme-wrap"><aa-theme-toggle/></div>
         </div>
 
         <form (ngSubmit)="onSubmit()" class="auth-form">
@@ -59,14 +59,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   styles: [`
     .auth-page {
       min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      padding: 20px; background: var(--bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border);
+      padding: 96px 20px 20px; background: var(--bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border);
     }
     .auth-card   { max-width: 400px; width: 100%; padding: 36px 32px; }
     .auth-header { text-align: center; margin-bottom: 28px; position: relative; }
     .logo-icon   { color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
     .auth-title  { font-size: 24px; margin-bottom: 4px; }
     .auth-sub    { font-size: 13px; color: var(--text-muted); }
-    .theme-wrap  { position: absolute; top: 0; right: 0; }
 
     .auth-form   { display: flex; flex-direction: column; gap: 0; }
 

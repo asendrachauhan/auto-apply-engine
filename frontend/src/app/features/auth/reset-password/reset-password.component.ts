@@ -6,13 +6,15 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { NeoButtonComponent } from '../../../shared/components/neo-button/neo-button.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { AuthHeaderComponent } from '../../../shared/components/auth-header/auth-header.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-reset-password',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, IconComponent, TranslateModule],
+  imports: [CommonModule, FormsModule, RouterModule, NeoButtonComponent, IconComponent, AuthHeaderComponent, TranslateModule],
   template: `
+    <aa-auth-header/>
     <div class="auth-page">
       <div class="auth-card neo anim-fade-in">
         <div class="auth-header">
@@ -51,7 +53,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     </div>
   `,
   styles: [`
-    .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border); }
+    .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 96px 20px 20px; background: var(--bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border); }
     .auth-card { max-width: 400px; width: 100%; padding: 36px 32px; }
     .auth-header { text-align: center; margin-bottom: 28px; }
     .logo-icon { color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }

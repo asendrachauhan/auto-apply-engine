@@ -6,16 +6,17 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NeoButtonComponent } from '../../shared/components/neo-button/neo-button.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-preferences',
   standalone: true,
-  imports: [CommonModule, FormsModule, NeoButtonComponent, IconComponent],
+  imports: [CommonModule, FormsModule, NeoButtonComponent, IconComponent, TranslateModule],
   template: `
     <div class="page-container">
       <div class="page-header">
-        <h1 class="page-title">Job Preferences</h1>
-        <p class="page-subtitle">Tell the automation engine exactly what to look for — and what to avoid.</p>
+        <h1 class="page-title">{{ 'PREFERENCES.TITLE' | translate }}</h1>
+        <p class="page-subtitle">{{ 'PREFERENCES.SUBTITLE' | translate }}</p>
       </div>
 
       @if (loading()) {
@@ -24,39 +25,39 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         <div class="grid-2">
           <!-- Search criteria -->
           <div class="section-card">
-            <div class="section-title"><aa-icon name="search" [size]="16"/> Search Criteria</div>
+            <div class="section-title"><aa-icon name="search" [size]="16"/> {{ 'PREFERENCES.SEARCH_CRITERIA' | translate }}</div>
 
             <div class="field-group">
-              <label class="field-label">Target job titles</label>
-              <input class="neo-input" [(ngModel)]="jobTitlesText" placeholder="e.g. Frontend Developer, Angular Engineer">
-              <div class="field-hint">Comma-separated</div>
+              <label class="field-label">{{ 'PREFERENCES.TARGET_TITLES' | translate }}</label>
+              <input class="neo-input" [(ngModel)]="jobTitlesText" [placeholder]="'PREFERENCES.TARGET_TITLES_PLACEHOLDER' | translate">
+              <div class="field-hint">{{ 'PREFERENCES.COMMA_SEPARATED' | translate }}</div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">Preferred locations</label>
-              <input class="neo-input" [(ngModel)]="locationsText" placeholder="e.g. Bangalore, Remote, Pune">
-              <div class="field-hint">Comma-separated</div>
+              <label class="field-label">{{ 'PREFERENCES.PREFERRED_LOCATIONS' | translate }}</label>
+              <input class="neo-input" [(ngModel)]="locationsText" [placeholder]="'PREFERENCES.LOCATIONS_PLACEHOLDER' | translate">
+              <div class="field-hint">{{ 'PREFERENCES.COMMA_SEPARATED' | translate }}</div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">Minimum salary (LPA / annual)</label>
+              <label class="field-label">{{ 'PREFERENCES.MIN_SALARY' | translate }}</label>
               <input type="number" class="neo-input" [(ngModel)]="prefs.minSalary" min="0">
             </div>
 
             <div class="field-group">
-              <label class="field-label">Job types</label>
+              <label class="field-label">{{ 'PREFERENCES.JOB_TYPES' | translate }}</label>
               <div class="checkbox-row">
                 @for (t of jobTypeOptions; track t) {
                   <label class="check-chip" [class.active]="prefs.jobTypes.includes(t)">
                     <input type="checkbox" [checked]="prefs.jobTypes.includes(t)" (change)="toggleArr(prefs.jobTypes, t)">
-                    {{ t }}
+                    {{ ('PREFERENCES.JOB_TYPE.' + t) | translate }}
                   </label>
                 }
               </div>
             </div>
 
             <div class="toggle-row">
-              <span class="text-sm">Remote only</span>
+              <span class="text-sm">{{ 'PREFERENCES.REMOTE_ONLY' | translate }}</span>
               <label class="mini-toggle">
                 <input type="checkbox" [(ngModel)]="prefs.remoteOnly">
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
@@ -66,17 +67,17 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
           <!-- EU + automation tuning -->
           <div class="section-card">
-            <div class="section-title"><aa-icon name="eu" [size]="16"/> EU Mode &amp; Automation Tuning</div>
+            <div class="section-title"><aa-icon name="eu" [size]="16"/> {{ 'PREFERENCES.EU_AUTOMATION_TUNING' | translate }}</div>
 
             <div class="toggle-row">
-              <span class="text-sm">Enable EU job search mode</span>
+              <span class="text-sm">{{ 'PREFERENCES.ENABLE_EU_MODE' | translate }}</span>
               <label class="mini-toggle">
                 <input type="checkbox" [(ngModel)]="prefs.euMode">
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
               </label>
             </div>
             <div class="toggle-row">
-              <span class="text-sm">Require visa sponsorship</span>
+              <span class="text-sm">{{ 'PREFERENCES.REQUIRE_VISA' | translate }}</span>
               <label class="mini-toggle">
                 <input type="checkbox" [(ngModel)]="prefs.visaSponsorshipRequired">
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
@@ -84,91 +85,91 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             </div>
 
             <div class="field-group">
-              <label class="field-label">Current CTC (₹ LPA) — for EU comparisons</label>
+              <label class="field-label">{{ 'PREFERENCES.CURRENT_CTC' | translate }}</label>
               <input type="number" class="neo-input" [(ngModel)]="prefs.currentCtcLPA" min="0">
             </div>
 
             <div class="field-group">
-              <label class="field-label">Minimum ghost-score to show a job ({{ prefs.ghostScoreMinimum }})</label>
+              <label class="field-label">{{ 'PREFERENCES.GHOST_SCORE_MIN' | translate:{score: prefs.ghostScoreMinimum} }}</label>
               <input type="range" min="0" max="100" step="5" class="score-range" [(ngModel)]="prefs.ghostScoreMinimum">
             </div>
 
             <div class="field-group">
-              <label class="field-label">Auto-apply threshold — match score ({{ prefs.autoApplyThreshold }}%)</label>
+              <label class="field-label">{{ 'PREFERENCES.AUTO_APPLY_THRESHOLD' | translate:{pct: prefs.autoApplyThreshold} }}</label>
               <input type="range" min="65" max="99" step="1" class="score-range" [(ngModel)]="prefs.autoApplyThreshold">
-              <div class="field-hint">Only jobs scoring at or above this are auto-applied to</div>
+              <div class="field-hint">{{ 'PREFERENCES.AUTO_APPLY_HINT' | translate }}</div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">Daily application limit ({{ dailyApplyLimit }} / day)</label>
+              <label class="field-label">{{ 'PREFERENCES.DAILY_LIMIT' | translate:{limit: dailyApplyLimit} }}</label>
               <input type="range" min="1" [max]="maxDailyLimit()" step="1" class="score-range" [(ngModel)]="dailyApplyLimit">
-              <div class="field-hint">Your {{ planName() }} plan allows up to {{ maxDailyLimit() }}/day</div>
+              <div class="field-hint">{{ 'PREFERENCES.DAILY_LIMIT_HINT' | translate:{plan: planName(), max: maxDailyLimit()} }}</div>
             </div>
           </div>
         </div>
 
         <!-- Keywords -->
         <div class="section-card">
-          <div class="section-title"><aa-icon name="target" [size]="16"/> Keyword Rules</div>
+          <div class="section-title"><aa-icon name="target" [size]="16"/> {{ 'PREFERENCES.KEYWORD_RULES' | translate }}</div>
           <div class="grid-2">
             <div class="field-group">
-              <label class="field-label">Must-have keywords</label>
-              <input class="neo-input" [(ngModel)]="mustHaveText" placeholder="e.g. React, TypeScript">
-              <div class="field-hint">Jobs must mention at least one of these</div>
+              <label class="field-label">{{ 'PREFERENCES.MUST_HAVE_KEYWORDS' | translate }}</label>
+              <input class="neo-input" [(ngModel)]="mustHaveText" [placeholder]="'PREFERENCES.MUST_HAVE_PLACEHOLDER' | translate">
+              <div class="field-hint">{{ 'PREFERENCES.MUST_HAVE_HINT' | translate }}</div>
             </div>
             <div class="field-group">
-              <label class="field-label">Deal-breaker keywords</label>
-              <input class="neo-input" [(ngModel)]="dealBreakerText" placeholder="e.g. unpaid, commission-only">
-              <div class="field-hint">Jobs mentioning these are skipped</div>
+              <label class="field-label">{{ 'PREFERENCES.DEAL_BREAKER_KEYWORDS' | translate }}</label>
+              <input class="neo-input" [(ngModel)]="dealBreakerText" [placeholder]="'PREFERENCES.DEAL_BREAKER_PLACEHOLDER' | translate">
+              <div class="field-hint">{{ 'PREFERENCES.DEAL_BREAKER_HINT' | translate }}</div>
             </div>
           </div>
         </div>
 
         <!-- Notifications -->
         <div class="section-card">
-          <div class="section-title"><aa-icon name="bell" [size]="16"/> Notifications</div>
+          <div class="section-title"><aa-icon name="bell" [size]="16"/> {{ 'PREFERENCES.NOTIFICATIONS' | translate }}</div>
           <div class="grid-2">
             <div>
               <div class="toggle-row">
-                <span class="text-sm">Email notifications</span>
+                <span class="text-sm">{{ 'PREFERENCES.EMAIL_NOTIFICATIONS' | translate }}</span>
                 <label class="mini-toggle">
                   <input type="checkbox" [(ngModel)]="notif.emailEnabled">
                   <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 </label>
               </div>
               <div class="field-group">
-                <label class="field-label">Notification email</label>
+                <label class="field-label">{{ 'PREFERENCES.NOTIFICATION_EMAIL' | translate }}</label>
                 <input class="neo-input" [(ngModel)]="notif.emailAddress" placeholder="you@example.com">
               </div>
               <div class="toggle-row">
-                <span class="text-sm">WhatsApp notifications</span>
+                <span class="text-sm">{{ 'PREFERENCES.WHATSAPP_NOTIFICATIONS' | translate }}</span>
                 <label class="mini-toggle">
                   <input type="checkbox" [(ngModel)]="notif.whatsappEnabled">
                   <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 </label>
               </div>
               <div class="field-group">
-                <label class="field-label">WhatsApp number</label>
+                <label class="field-label">{{ 'PREFERENCES.WHATSAPP_NUMBER' | translate }}</label>
                 <input class="neo-input" [(ngModel)]="notif.whatsappNumber" placeholder="+91 98765 43210">
               </div>
             </div>
             <div>
               <div class="toggle-row">
-                <span class="text-sm">Notify per application</span>
+                <span class="text-sm">{{ 'PREFERENCES.NOTIFY_PER_APPLICATION' | translate }}</span>
                 <label class="mini-toggle">
                   <input type="checkbox" [(ngModel)]="notif.perApplication">
                   <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 </label>
               </div>
               <div class="toggle-row">
-                <span class="text-sm">Daily summary</span>
+                <span class="text-sm">{{ 'PREFERENCES.DAILY_SUMMARY' | translate }}</span>
                 <label class="mini-toggle">
                   <input type="checkbox" [(ngModel)]="notif.dailySummary">
                   <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 </label>
               </div>
               <div class="toggle-row">
-                <span class="text-sm">Weekly digest</span>
+                <span class="text-sm">{{ 'PREFERENCES.WEEKLY_DIGEST' | translate }}</span>
                 <label class="mini-toggle">
                   <input type="checkbox" [(ngModel)]="notif.weeklyDigest">
                   <span class="toggle-track"><span class="toggle-thumb"></span></span>
@@ -179,7 +180,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         </div>
 
         <div class="save-bar">
-          <aa-button [loading]="saving()" (clicked)="save()" icon="checkCircle">Save Preferences</aa-button>
+          <aa-button [loading]="saving()" (clicked)="save()" icon="checkCircle">{{ 'PREFERENCES.SAVE_BTN' | translate }}</aa-button>
         </div>
       }
     </div>
@@ -238,7 +239,7 @@ export class PreferencesComponent implements OnInit {
 
   jobTitlesText = ''; locationsText = ''; mustHaveText = ''; dealBreakerText = '';
 
-  constructor(private api: ApiService, public auth: AuthService, private toast: ToastService) {}
+  constructor(private api: ApiService, public auth: AuthService, private toast: ToastService, private translate: TranslateService) {}
 
   ngOnInit(): void {
     this.api.getSettings().subscribe({
@@ -284,11 +285,11 @@ export class PreferencesComponent implements OnInit {
       dailyApplyLimit: this.dailyApplyLimit,
     }).subscribe({
       next: () => {
-        this.toast.success('Preferences saved');
+        this.toast.success(this.translate.instant('PREFERENCES.SAVED_TOAST'));
         this.saving.set(false);
         this.auth.fetchMe().subscribe();
       },
-      error: (e: any) => { this.toast.error(e.error?.message || 'Save failed'); this.saving.set(false); },
+      error: (e: any) => { this.toast.error(e.error?.message || this.translate.instant('PREFERENCES.SAVE_FAILED_TOAST')); this.saving.set(false); },
     });
   }
 }

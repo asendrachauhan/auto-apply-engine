@@ -4,13 +4,15 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NeoButtonComponent } from '../../../shared/components/neo-button/neo-button.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { AuthHeaderComponent } from '../../../shared/components/auth-header/auth-header.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-verify-email',
   standalone: true,
-  imports: [CommonModule, RouterModule, NeoButtonComponent, IconComponent, TranslateModule],
+  imports: [CommonModule, RouterModule, NeoButtonComponent, IconComponent, AuthHeaderComponent, TranslateModule],
   template: `
+    <aa-auth-header/>
     <div class="auth-page">
       <div class="auth-card neo anim-fade-in">
         @if (state() === 'checking') {
@@ -37,7 +39,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     </div>
   `,
   styles: [`
-    .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border); }
+    .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 96px 20px 20px; background: var(--bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border); }
     .auth-card { max-width: 420px; width: 100%; padding: 40px 32px; text-align: center; }
     .state-block { display: flex; flex-direction: column; align-items: center; }
     .icon-success { color: var(--success); }

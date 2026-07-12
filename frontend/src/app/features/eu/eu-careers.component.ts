@@ -5,16 +5,17 @@ import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NeoButtonComponent } from '../../shared/components/neo-button/neo-button.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-eu-careers',
   standalone: true,
-  imports: [CommonModule, FormsModule, NeoButtonComponent, IconComponent],
+  imports: [CommonModule, FormsModule, NeoButtonComponent, IconComponent, TranslateModule],
   template: `
     <div class="page-container">
       <div class="page-header">
-        <h1 class="page-title">India → Europe Careers</h1>
-        <p class="page-subtitle">CTC conversion, visa pathways, and EU-ready resume guidance — nobody else offers this.</p>
+        <h1 class="page-title">{{ 'EU_CAREERS.TITLE' | translate }}</h1>
+        <p class="page-subtitle">{{ 'EU_CAREERS.SUBTITLE' | translate }}</p>
       </div>
 
       <!-- Country pathway cards -->
@@ -37,11 +38,11 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               <div class="pathway-stats">
                 <div class="pw-stat">
                   <div class="pw-stat-val">€{{ (p.avgMidSalaryEUR/1000).toFixed(0) }}k</div>
-                  <div class="pw-stat-lbl">Avg mid salary</div>
+                  <div class="pw-stat-lbl">{{ 'EU_CAREERS.AVG_MID_SALARY' | translate }}</div>
                 </div>
                 <div class="pw-stat">
                   <div class="pw-stat-val">{{ p.processingDays.min }}–{{ p.processingDays.max }}d</div>
-                  <div class="pw-stat-lbl">Visa processing</div>
+                  <div class="pw-stat-lbl">{{ 'EU_CAREERS.VISA_PROCESSING' | translate }}</div>
                 </div>
               </div>
               <div class="pathway-strengths">
@@ -56,33 +57,33 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
       <!-- CTC Converter -->
       <div class="section-card">
-        <div class="section-title"><aa-icon name="currency" [size]="16"/> CTC → EUR Converter</div>
+        <div class="section-title"><aa-icon name="currency" [size]="16"/> {{ 'EU_CAREERS.CTC_CONVERTER' | translate }}</div>
         <div class="ctc-form">
           <div class="ctc-field">
-            <label class="text-xs text-muted">Your CTC (₹ LPA)</label>
+            <label class="text-xs text-muted">{{ 'EU_CAREERS.YOUR_CTC' | translate }}</label>
             <input type="number" class="neo-input" [(ngModel)]="ctcLPA" placeholder="e.g. 12" min="1">
           </div>
           <div class="ctc-field">
-            <label class="text-xs text-muted">Target country</label>
+            <label class="text-xs text-muted">{{ 'EU_CAREERS.TARGET_COUNTRY' | translate }}</label>
             <select class="neo-input" [(ngModel)]="targetCountry">
               @for (p of pathways(); track p.country) {
                 <option [value]="countryCode(p.country)">{{ p.country }}</option>
               }
             </select>
           </div>
-          <aa-button [loading]="converting()" (clicked)="convert()" icon="currency">Convert</aa-button>
+          <aa-button [loading]="converting()" (clicked)="convert()" icon="currency">{{ 'EU_CAREERS.CONVERT_BTN' | translate }}</aa-button>
         </div>
 
         @if (conversion()) {
           <div class="conversion-result neo-sm anim-fade-in">
             <div class="conv-row">
               <div class="conv-item">
-                <div class="conv-label">Your CTC</div>
+                <div class="conv-label">{{ 'EU_CAREERS.YOUR_CTC' | translate }}</div>
                 <div class="conv-val">€{{ conversion().equivalentEUR.toLocaleString() }}</div>
               </div>
               <aa-icon name="chevronRight" [size]="20" class="conv-arrow"/>
               <div class="conv-item">
-                <div class="conv-label">Local market rate</div>
+                <div class="conv-label">{{ 'EU_CAREERS.LOCAL_MARKET_RATE' | translate }}</div>
                 <div class="conv-val text-accent">€{{ conversion().marketAverageEUR.toLocaleString() }}</div>
               </div>
               <div class="conv-uplift" [class.positive]="conversion().potentialUpliftX >= 1">
@@ -92,7 +93,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             <p class="conv-guidance text-sm">{{ conversion().negotiationGuidance }}</p>
             <div class="conv-badge" [class.eligible]="conversion().meetsVisaMinimum">
               <aa-icon [name]="conversion().meetsVisaMinimum ? 'checkCircle' : 'alertTriangle'" [size]="14"/>
-              {{ conversion().meetsVisaMinimum ? 'Meets visa minimum salary' : 'Below visa minimum salary' }}
+              {{ (conversion().meetsVisaMinimum ? 'EU_CAREERS.MEETS_VISA_MIN' : 'EU_CAREERS.BELOW_VISA_MIN') | translate }}
             </div>
           </div>
         }
@@ -102,13 +103,13 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         <!-- Visa Eligibility -->
         <div class="section-card">
           <div class="section-title d-flex justify-between align-center">
-            <span class="d-flex align-center gap-8"><aa-icon name="passport" [size]="16"/> Visa Eligibility</span>
-            <aa-button variant="ghost" size="sm" [loading]="loadingVisa()" (clicked)="checkVisa()">Check for {{ targetCountry }}</aa-button>
+            <span class="d-flex align-center gap-8"><aa-icon name="passport" [size]="16"/> {{ 'EU_CAREERS.VISA_ELIGIBILITY' | translate }}</span>
+            <aa-button variant="ghost" size="sm" [loading]="loadingVisa()" (clicked)="checkVisa()">{{ 'EU_CAREERS.CHECK_FOR' | translate:{country: targetCountry} }}</aa-button>
           </div>
           @if (visaResult()) {
             <div class="visa-status" [class.eligible]="visaResult().eligible">
               <aa-icon [name]="visaResult().eligible ? 'checkCircle' : 'alertTriangle'" [size]="18"/>
-              <span>{{ visaResult().eligible ? 'Likely eligible' : 'Gaps to address' }} — {{ visaResult().visaType }}</span>
+              <span>{{ (visaResult().eligible ? 'EU_CAREERS.LIKELY_ELIGIBLE' : 'EU_CAREERS.GAPS_TO_ADDRESS') | translate }} — {{ visaResult().visaType }}</span>
             </div>
             @if (visaResult().positives?.length) {
               <div class="visa-list">
@@ -120,19 +121,19 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
                 @for (i of visaResult().issues; track i) { <div class="visa-item issue"><aa-icon name="alertTriangle" [size]="12"/>{{ i }}</div> }
               </div>
             }
-            <a class="visa-link" [href]="visaResult().website" target="_blank">Official visa portal <aa-icon name="externalLink" [size]="11"/></a>
+            <a class="visa-link" [href]="visaResult().website" target="_blank">{{ 'EU_CAREERS.OFFICIAL_VISA_PORTAL' | translate }} <aa-icon name="externalLink" [size]="11"/></a>
           } @else if (!resumeMissing()) {
-            <p class="text-muted text-sm">Click "Check" to see your eligibility based on your uploaded resume.</p>
+            <p class="text-muted text-sm">{{ 'EU_CAREERS.CLICK_CHECK_HINT' | translate }}</p>
           } @else {
-            <p class="text-muted text-sm">Upload your resume first to check visa eligibility.</p>
+            <p class="text-muted text-sm">{{ 'EU_CAREERS.UPLOAD_RESUME_VISA_HINT' | translate }}</p>
           }
         </div>
 
         <!-- EU Resume Guide -->
         <div class="section-card">
           <div class="section-title d-flex justify-between align-center">
-            <span class="d-flex align-center gap-8"><aa-icon name="fileEdit" [size]="16"/> EU Resume Guide</span>
-            <aa-button variant="ghost" size="sm" [loading]="loadingGuide()" (clicked)="loadGuide()">Load for {{ targetCountry }}</aa-button>
+            <span class="d-flex align-center gap-8"><aa-icon name="fileEdit" [size]="16"/> {{ 'EU_CAREERS.RESUME_GUIDE' | translate }}</span>
+            <aa-button variant="ghost" size="sm" [loading]="loadingGuide()" (clicked)="loadGuide()">{{ 'EU_CAREERS.LOAD_FOR' | translate:{country: targetCountry} }}</aa-button>
           </div>
           @if (resumeGuide()) {
             <div class="guide-issues">
@@ -148,15 +149,15 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             </div>
             @if (resumeGuide().culturalNotes?.length) {
               <div class="divider"></div>
-              <div class="text-xs fw-600 text-muted mb-8">CULTURAL NOTES</div>
+              <div class="text-xs fw-600 text-muted mb-8">{{ 'EU_CAREERS.CULTURAL_NOTES' | translate }}</div>
               @for (n of resumeGuide().culturalNotes; track n) {
                 <div class="cultural-note text-sm">{{ n }}</div>
               }
             }
           } @else if (!resumeMissing()) {
-            <p class="text-muted text-sm">Click "Load" for country-specific resume guidance based on your resume.</p>
+            <p class="text-muted text-sm">{{ 'EU_CAREERS.CLICK_LOAD_HINT' | translate }}</p>
           } @else {
-            <p class="text-muted text-sm">Upload your resume first for personalised guidance.</p>
+            <p class="text-muted text-sm">{{ 'EU_CAREERS.UPLOAD_RESUME_GUIDE_HINT' | translate }}</p>
           }
         </div>
       </div>
@@ -228,7 +229,7 @@ export class EuCareersComponent implements OnInit {
   resumeGuide = signal<any>(null);
   resumeMissing = signal(false);
 
-  constructor(private api: ApiService, private toast: ToastService) {}
+  constructor(private api: ApiService, private toast: ToastService, private translate: TranslateService) {}
 
   ngOnInit(): void {
     this.loadingPathways.set(true);
@@ -246,11 +247,11 @@ export class EuCareersComponent implements OnInit {
   selectCountry(code: string): void { this.selectedCountry.set(code); this.targetCountry = code; }
 
   convert(): void {
-    if (!this.ctcLPA || this.ctcLPA <= 0) { this.toast.error('Enter a valid CTC amount'); return; }
+    if (!this.ctcLPA || this.ctcLPA <= 0) { this.toast.error(this.translate.instant('EU_CAREERS.INVALID_CTC')); return; }
     this.converting.set(true);
     this.api.convertCtc(this.ctcLPA, this.targetCountry).subscribe({
       next: (r: any) => { this.conversion.set(r.data); this.converting.set(false); },
-      error: (e: any) => { this.toast.error(e.error?.message || 'Conversion failed'); this.converting.set(false); },
+      error: (e: any) => { this.toast.error(e.error?.message || this.translate.instant('EU_CAREERS.CONVERSION_FAILED')); this.converting.set(false); },
     });
   }
 
@@ -261,7 +262,7 @@ export class EuCareersComponent implements OnInit {
       error: (e: any) => {
         this.loadingVisa.set(false);
         if (e.status === 404) { this.resumeMissing.set(true); }
-        else this.toast.error(e.error?.message || 'Check failed');
+        else this.toast.error(e.error?.message || this.translate.instant('EU_CAREERS.CHECK_FAILED'));
       },
     });
   }
@@ -273,7 +274,7 @@ export class EuCareersComponent implements OnInit {
       error: (e: any) => {
         this.loadingGuide.set(false);
         if (e.status === 404) { this.resumeMissing.set(true); }
-        else this.toast.error(e.error?.message || 'Load failed');
+        else this.toast.error(e.error?.message || this.translate.instant('EU_CAREERS.LOAD_FAILED'));
       },
     });
   }

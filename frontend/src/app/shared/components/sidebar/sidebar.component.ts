@@ -1,29 +1,15 @@
-import { Component, signal, computed, inject, effect, HostListener } from '@angular/core';
+import { Component, signal, computed, inject, HostListener } from '@angular/core';
 import { CommonModule }       from '@angular/common';
 import { RouterModule, RouterLinkActive } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService }        from '../../../core/services/auth.service';
 import { UiService }          from '../../../core/services/ui.service';
-import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { IconComponent }      from '../icon/icon.component';
-
-const LANGUAGES = [
-  { code: 'en', label: 'EN', name: 'English' },
-  { code: 'es', label: 'ES', name: 'Español' },
-  { code: 'zh', label: '中', name: '中文' },
-  { code: 'hi', label: 'हि', name: 'हिंदी' },
-  { code: 'ar', label: 'ع',  name: 'العربية' },
-  { code: 'fr', label: 'FR', name: 'Français' },
-  { code: 'pt', label: 'PT', name: 'Português' },
-  { code: 'ru', label: 'РУ', name: 'Русский' },
-  { code: 'ja', label: '日', name: '日本語' },
-  { code: 'de', label: 'DE', name: 'Deutsch' },
-];
 
 @Component({
   selector: 'aa-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, RouterLinkActive, ThemeToggleComponent, IconComponent, TranslateModule],
+  imports: [CommonModule, RouterModule, RouterLinkActive, IconComponent, TranslateModule],
   template: `
     <aside class="sidebar" [class.collapsed]="collapsed() && !isMobile()" [class.mobile-open]="ui.sidebarOpen()">
 
@@ -67,27 +53,8 @@ const LANGUAGES = [
         </div>
       </div>
 
-      <!-- Footer: theme + language + user + logout -->
+      <!-- Footer: user info (theme/language/logout now live in the top app header) -->
       <div class="sidebar-footer">
-        <div class="footer-controls">
-          <aa-theme-toggle />
-
-          <!-- Language picker -->
-          <div class="lang-picker" *ngIf="!collapsed() || isMobile()">
-            <span class="lang-label">{{ 'COMMON.LANGUAGE' | translate }}</span>
-            <div class="lang-chips">
-              @for (lang of languages; track lang.code) {
-                <button class="lang-chip"
-                  [class.active]="currentLang() === lang.code"
-                  (click)="setLang(lang.code)"
-                  [title]="lang.name">
-                  {{ lang.label }}
-                </button>
-              }
-            </div>
-          </div>
-        </div>
-
         <div class="user-info" *ngIf="!collapsed() || isMobile()">
           <div class="user-avatar">{{ initials() }}</div>
           <div class="user-details">
@@ -95,10 +62,6 @@ const LANGUAGES = [
             <div class="user-plan">{{ planLabel() }}</div>
           </div>
         </div>
-        <button class="logout-btn" (click)="auth.logout()">
-          <aa-icon name="logout" [size]="14"/>
-          <span *ngIf="!collapsed() || isMobile()">{{ 'SIDEBAR.LOGOUT' | translate }}</span>
-        </button>
       </div>
     </aside>
   `,
@@ -163,25 +126,11 @@ const LANGUAGES = [
 
     /* ── Footer ────────────────────────────────────────────────────── */
     .sidebar-footer { border-top:1px solid rgba(163,177,198,.2); padding-top:12px; display:flex; flex-direction:column; gap:10px; }
-    .footer-controls { display: flex; flex-direction: column; gap: 8px; }
-
-    /* Language picker */
-    .lang-label { font-size:10px; font-weight:700; color:var(--text-muted); letter-spacing:.6px; text-transform:uppercase; }
-    .lang-chips { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
-    .lang-chip {
-      font-size:10px; font-weight:700; padding:3px 7px; border-radius:6px;
-      background: rgba(255,255,255,.05); border:1px solid var(--glass-border);
-      color: var(--text-muted); cursor:pointer; transition: all .15s;
-    }
-    .lang-chip:hover  { border-color: var(--accent); color: var(--accent); }
-    .lang-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
     .user-info    { display:flex; align-items:center; gap:10px; }
     .user-avatar  { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#a855f7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex-shrink:0; }
     .user-name    { font-size:12px; font-weight:700; color:var(--text); }
     .user-plan    { font-size:10px; color:var(--accent); font-weight:600; }
-    .logout-btn   { background:none; border:none; cursor:pointer; font-size:12px; color:var(--text-muted); text-align:left; padding:6px 8px; border-radius:8px; display:flex; align-items:center; gap:8px; transition: all .2s; width: 100%; }
-    .logout-btn:hover { color:var(--danger); background: rgba(239,68,68,.08); }
 
     /* ── Mobile ────────────────────────────────────────────────────── */
     @media (max-width: 768px) {
@@ -201,20 +150,9 @@ const LANGUAGES = [
 })
 export class SidebarComponent {
   collapsed = signal(false);
-  languages = LANGUAGES;
-  currentLang = signal('en');
 
   auth = inject(AuthService);
   ui   = inject(UiService);
-  private translate = inject(TranslateService);
-
-  constructor() {
-    // Restore persisted language
-    const saved = localStorage.getItem('aa_lang') || 'en';
-    this.translate.setDefaultLang('en');
-    this.translate.use(saved);
-    this.currentLang.set(saved);
-  }
 
   isMobile = signal(window.innerWidth <= 768);
 
@@ -230,14 +168,6 @@ export class SidebarComponent {
     const plan = this.user()?.plan || 'free';
     return plan === 'free' ? 'Free Plan' : plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
   });
-
-  setLang(code: string) {
-    this.translate.use(code);
-    this.currentLang.set(code);
-    localStorage.setItem('aa_lang', code);
-    // Set dir for RTL languages (Arabic)
-    document.documentElement.setAttribute('dir', code === 'ar' ? 'rtl' : 'ltr');
-  }
 
   navItems = [
     { icon:'dashboard',   labelKey:'NAV.DASHBOARD',    route:'/dashboard' },

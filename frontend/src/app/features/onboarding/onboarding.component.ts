@@ -7,11 +7,12 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'aa-onboarding',
   standalone: true,
-  imports: [CommonModule, FormsModule, NeoButtonComponent, IconComponent],
+  imports: [CommonModule, FormsModule, NeoButtonComponent, IconComponent, TranslateModule],
   template: `
     <div class="onboard-page">
       <div class="onboard-card neo anim-fade-in">
@@ -22,17 +23,17 @@ import { ToastService } from '../../core/services/toast.service';
           }
         </div>
 
-        <div class="step-num">Step {{ step()+1 }} of {{ steps.length }}</div>
+        <div class="step-num">{{ 'ONBOARDING.STEP_OF' | translate:{current: step()+1, total: steps.length} }}</div>
 
         <!-- Step 0: Welcome -->
         @if (step() === 0) {
           <div class="step-content anim-fade-in">
             <aa-icon name="sparkles" [size]="40" class="step-icon-svg"/>
-            <h2>Welcome to AutoApply AI</h2>
-            <p>Let's set up your automated job hunt in under 2 minutes. We'll do all the heavy lifting from here.</p>
+            <h2>{{ 'ONBOARDING.WELCOME_TITLE' | translate }}</h2>
+            <p>{{ 'ONBOARDING.WELCOME_SUBTITLE' | translate }}</p>
             <div class="feature-list">
               @for (f of welcomeFeatures; track f) {
-                <div class="feature-row"><aa-icon name="check" [size]="14"/> {{ f }}</div>
+                <div class="feature-row"><aa-icon name="check" [size]="14"/> {{ f | translate }}</div>
               }
             </div>
           </div>
@@ -42,21 +43,21 @@ import { ToastService } from '../../core/services/toast.service';
         @if (step() === 1) {
           <div class="step-content anim-fade-in">
             <aa-icon name="resume" [size]="40" class="step-icon-svg"/>
-            <h2>Upload Your Resume</h2>
-            <p>AI will parse, structure, and optimize it automatically.</p>
+            <h2>{{ 'ONBOARDING.RESUME_TITLE' | translate }}</h2>
+            <p>{{ 'ONBOARDING.RESUME_SUBTITLE' | translate }}</p>
             <div class="upload-zone neo-inset" (click)="fileInput.click()" [class.has-file]="uploaded()">
               @if (uploading()) {
-                <div class="text-muted">Parsing with AI…</div>
+                <div class="text-muted">{{ 'ONBOARDING.PARSING' | translate }}</div>
               } @else if (!uploaded()) {
-                <div><aa-icon name="upload" [size]="20"/> Drop PDF/DOCX or click to upload</div>
-                <div class="text-muted text-sm mt-8">Or paste text below</div>
+                <div><aa-icon name="upload" [size]="20"/> {{ 'ONBOARDING.DROP_FILE' | translate }}</div>
+                <div class="text-muted text-sm mt-8">{{ 'ONBOARDING.PASTE_TEXT_HINT' | translate }}</div>
               } @else {
-                <div class="text-success fw-700"><aa-icon name="checkCircle" [size]="16"/> Resume parsed &amp; optimised!</div>
+                <div class="text-success fw-700"><aa-icon name="checkCircle" [size]="16"/> {{ 'ONBOARDING.RESUME_PARSED' | translate }}</div>
               }
             </div>
             <input #fileInput type="file" accept=".pdf,.doc,.docx,.txt" style="display:none" (change)="onFile($event)">
             <textarea class="neo-input mt-16" rows="6" [(ngModel)]="resumeText"
-              placeholder="Or paste resume text here…"></textarea>
+              [placeholder]="'ONBOARDING.PASTE_TEXT_PLACEHOLDER' | translate"></textarea>
           </div>
         }
 
@@ -64,17 +65,17 @@ import { ToastService } from '../../core/services/toast.service';
         @if (step() === 2) {
           <div class="step-content anim-fade-in">
             <aa-icon name="target" [size]="40" class="step-icon-svg"/>
-            <h2>Job Preferences</h2>
+            <h2>{{ 'ONBOARDING.PREFERENCES_TITLE' | translate }}</h2>
             <div class="input-group">
-              <label class="input-label">Target Roles</label>
+              <label class="input-label">{{ 'ONBOARDING.TARGET_ROLES' | translate }}</label>
               <input class="neo-input" [(ngModel)]="prefs.titles" placeholder="Full Stack Developer, Node.js Dev">
             </div>
             <div class="input-group">
-              <label class="input-label">Locations</label>
+              <label class="input-label">{{ 'ONBOARDING.LOCATIONS' | translate }}</label>
               <input class="neo-input" [(ngModel)]="prefs.locations" placeholder="Remote, Bangalore">
             </div>
             <div class="toggle-row-onboard">
-              <span>Remote only?</span>
+              <span>{{ 'ONBOARDING.REMOTE_ONLY_Q' | translate }}</span>
               <label class="mini-toggle-wrap">
                 <input type="checkbox" [(ngModel)]="prefs.remote">
                 <span class="t-track"><span class="t-thumb"></span></span>
@@ -87,14 +88,14 @@ import { ToastService } from '../../core/services/toast.service';
         @if (step() === 3) {
           <div class="step-content anim-fade-in">
             <aa-icon name="bell" [size]="40" class="step-icon-svg"/>
-            <h2>Stay Updated</h2>
-            <p>Get notified for every application — WhatsApp or Email.</p>
+            <h2>{{ 'ONBOARDING.NOTIFICATIONS_TITLE' | translate }}</h2>
+            <p>{{ 'ONBOARDING.NOTIFICATIONS_SUBTITLE' | translate }}</p>
             <div class="input-group">
-              <label class="input-label">WhatsApp (optional)</label>
+              <label class="input-label">{{ 'ONBOARDING.WHATSAPP_OPTIONAL' | translate }}</label>
               <input class="neo-input" type="tel" [(ngModel)]="notif.whatsapp" placeholder="+91 98765 43210">
             </div>
             <div class="input-group">
-              <label class="input-label">Email</label>
+              <label class="input-label">{{ 'ONBOARDING.EMAIL' | translate }}</label>
               <input class="neo-input" type="email" [(ngModel)]="notif.email" placeholder="you@email.com">
             </div>
           </div>
@@ -104,19 +105,19 @@ import { ToastService } from '../../core/services/toast.service';
         @if (step() === 4) {
           <div class="step-content anim-fade-in" style="text-align:center;">
             <aa-icon name="zap" [size]="40" class="step-icon-svg"/>
-            <h2>You're All Set!</h2>
-            <p>Automation is ready. Hit activate and let AI do the rest.</p>
+            <h2>{{ 'ONBOARDING.ALL_SET_TITLE' | translate }}</h2>
+            <p>{{ 'ONBOARDING.ALL_SET_SUBTITLE' | translate }}</p>
             <div class="ready-list">
               <div class="ready-row" [class.checked]="uploaded()">
-                <aa-icon [name]="uploaded() ? 'checkCircle' : 'circle'" [size]="14"/> Resume uploaded
+                <aa-icon [name]="uploaded() ? 'checkCircle' : 'circle'" [size]="14"/> {{ 'ONBOARDING.RESUME_UPLOADED' | translate }}
               </div>
-              <div class="ready-row checked"><aa-icon name="checkCircle" [size]="14"/> Preferences saved</div>
+              <div class="ready-row checked"><aa-icon name="checkCircle" [size]="14"/> {{ 'ONBOARDING.PREFERENCES_SAVED' | translate }}</div>
               <div class="ready-row" [class.checked]="notif.email || notif.whatsapp">
-                <aa-icon [name]="(notif.email || notif.whatsapp) ? 'checkCircle' : 'circle'" [size]="14"/> Notifications set
+                <aa-icon [name]="(notif.email || notif.whatsapp) ? 'checkCircle' : 'circle'" [size]="14"/> {{ 'ONBOARDING.NOTIFICATIONS_SET' | translate }}
               </div>
             </div>
             @if (!uploaded()) {
-              <p class="text-warning text-xs mt-16">You skipped resume upload — automation can't apply anywhere until you add one from the Resume page.</p>
+              <p class="text-warning text-xs mt-16">{{ 'ONBOARDING.SKIPPED_RESUME_WARNING' | translate }}</p>
             }
           </div>
         }
@@ -124,16 +125,16 @@ import { ToastService } from '../../core/services/toast.service';
         <!-- Navigation -->
         <div class="step-nav">
           @if (step() > 0) {
-            <aa-button variant="secondary" (clicked)="step.set(step()-1)" icon="chevronLeft">Back</aa-button>
+            <aa-button variant="secondary" (clicked)="step.set(step()-1)" icon="chevronLeft">{{ 'ONBOARDING.BACK' | translate }}</aa-button>
           } @else {
             <div></div>
           }
           @if (step() < steps.length - 1) {
             <aa-button (clicked)="next()" [loading]="loading()" iconRight="chevronRight">
-              {{ step() === 1 && !resumeText() ? 'Skip' : 'Next' }}
+              {{ (step() === 1 && !resumeText() ? 'ONBOARDING.SKIP' : 'ONBOARDING.NEXT') | translate }}
             </aa-button>
           } @else {
-            <aa-button (clicked)="finish()" [loading]="loading()" icon="zap">Activate &amp; Go!</aa-button>
+            <aa-button (clicked)="finish()" [loading]="loading()" icon="zap">{{ 'ONBOARDING.ACTIVATE_GO' | translate }}</aa-button>
           }
         </div>
       </div>
@@ -186,11 +187,11 @@ export class OnboardingComponent {
   steps = [0,1,2,3,4];
   prefs = { titles:'', locations:'', remote:false };
   notif = { whatsapp:'', email:'' };
-  welcomeFeatures = ['AI optimizes your resume for ATS','Auto-applies to matched jobs 24/7','WhatsApp + email updates per application','Track every application in one dashboard'];
+  welcomeFeatures = ['ONBOARDING.FEATURE_1','ONBOARDING.FEATURE_2','ONBOARDING.FEATURE_3','ONBOARDING.FEATURE_4'];
 
   private resumeFile: File | null = null;
 
-  constructor(private api: ApiService, private auth: AuthService, private toast: ToastService, private router: Router) {}
+  constructor(private api: ApiService, private auth: AuthService, private toast: ToastService, private router: Router, private translate: TranslateService) {}
 
   onFile(e: Event): void {
     const file = (e.target as HTMLInputElement).files?.[0];
@@ -207,8 +208,8 @@ export class OnboardingComponent {
       next: () => { this.uploaded.set(true); this.uploading.set(false); this.resumeText.set(file.name); },
       error: (e: any) => {
         this.uploading.set(false);
-        if (e.status === 403) this.toast.info('Verify your email (check your inbox) to upload a resume — you can do this later from the Resume page.');
-        else this.toast.error(e.error?.message || 'Resume upload failed');
+        if (e.status === 403) this.toast.info(this.translate.instant('ONBOARDING.VERIFY_EMAIL_UPLOAD'));
+        else this.toast.error(e.error?.message || this.translate.instant('ONBOARDING.UPLOAD_FAILED'));
       },
     });
   }
@@ -224,8 +225,8 @@ export class OnboardingComponent {
         next: () => { this.uploaded.set(true); this.uploading.set(false); this.step.set(this.step()+1); },
         error: (e: any) => {
           this.uploading.set(false);
-          if (e.status === 403) this.toast.info('Verify your email to parse your resume — you can add it later from the Resume page.');
-          else this.toast.error(e.error?.message || 'Resume parse failed');
+          if (e.status === 403) this.toast.info(this.translate.instant('ONBOARDING.VERIFY_EMAIL_PARSE'));
+          else this.toast.error(e.error?.message || this.translate.instant('ONBOARDING.PARSE_FAILED'));
           this.step.set(this.step()+1);
         },
       });
