@@ -1,4 +1,4 @@
 export const environment = {
-  production: false,
-  apiUrl: '/api',
+  production: true,
+  apiUrl: 'https://auto-apply-engine-production.up.railway.app/api',
 };
