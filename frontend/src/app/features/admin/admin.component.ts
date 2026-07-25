@@ -174,7 +174,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 })
 export class AdminComponent implements OnInit {
   activeTab = signal<'overview' | 'users' | 'settings'>('overview');
-  tabs = [
+  tabs<'overview' | 'users' | 'settings'>[] = [
     { id: 'overview', icon: 'analytics', label: 'ADMIN.TAB_OVERVIEW' },
     { id: 'users',    icon: 'users',     label: 'ADMIN.TAB_USERS' },
     { id: 'settings', icon: 'settings',  label: 'ADMIN.TAB_SETTINGS' },
