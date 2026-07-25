@@ -27,7 +27,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
       <div class="tabs neo-sm">
         @for (t of tabs; track t.id) {
-          <button class="tab-btn" [class.active]="activeTab() === t.id" (click)="activeTab.set(t.id)">
+          <button class="tab-btn" [class.active]="activeTab() === t.id" (click)="activeTab.set(t.id as any)">
             <aa-icon [name]="t.icon" [size]="14"/> {{ t.label | translate }}
           </button>
         }
@@ -174,7 +174,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 })
 export class AdminComponent implements OnInit {
   activeTab = signal<'overview' | 'users' | 'settings'>('overview');
-  tabs<'overview' | 'users' | 'settings'>[] = [
+  tabs = [
     { id: 'overview', icon: 'analytics', label: 'ADMIN.TAB_OVERVIEW' },
     { id: 'users',    icon: 'users',     label: 'ADMIN.TAB_USERS' },
     { id: 'settings', icon: 'settings',  label: 'ADMIN.TAB_SETTINGS' },
