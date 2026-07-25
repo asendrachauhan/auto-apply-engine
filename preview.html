@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoApply AI — Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Theme Variables ── */
+:root,[data-theme=light]{
+  --bg:#e0e5ec;--shadow-light:#fff;--shadow-dark:#a3b1c6;
+  --text:#2d3748;--text-muted:#718096;--text-light:#a0aec0;
+  --accent:#6c63ff;--accent-dim:rgba(108,99,255,.12);
+  --success:#43e97b;--danger:#f5576c;--warning:#f8961e;--gold:#f4b942;
+  --neo-raised:6px 6px 14px #a3b1c6,-6px -6px 14px #fff;
+  --neo-inset:inset 4px 4px 10px #a3b1c6,inset -4px -4px 10px #fff;
+  --neo-float:10px 10px 24px #a3b1c6,-10px -10px 24px #fff;
+  --neo-sm:4px 4px 8px #a3b1c6,-4px -4px 8px #fff;
+  --font-body:'Poppins',sans-serif; --font-display:'Space Grotesk',sans-serif;
+  --radius:16px;--radius-sm:10px;--radius-pill:50px;
+}
+[data-theme=dark]{
+  --bg:#1a1f2e;--shadow-light:#232840;--shadow-dark:#0f1219;
+  --text:#e2e8f0;--text-muted:#8896a9;--text-light:#4a5568;
+  --accent:#7c73ff;--accent-dim:rgba(124,115,255,.15);
+  --success:#4ade80;--danger:#f87171;
+  --neo-raised:6px 6px 14px #0f1219,-6px -6px 14px #232840;
+  --neo-inset:inset 4px 4px 10px #0f1219,inset -4px -4px 10px #232840;
+  --neo-float:12px 12px 28px #0f1219,-12px -12px 28px #232840;
+  --neo-sm:4px 4px 8px #0f1219,-4px -4px 8px #232840;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--shadow-dark);border-radius:3px;}
+
+/* ── Shell ── */
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:220px;padding:20px 12px;background:var(--bg);box-shadow:4px 0 20px rgba(163,177,198,.2);position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;gap:4px;z-index:10;}
+.main{margin-left:220px;padding:28px;flex:1;}
+@media(max-width:768px){.sidebar{width:100%;height:auto;position:relative;flex-direction:row;flex-wrap:wrap;} .main{margin-left:0;padding:16px;}}
+
+/* ── Logo ── */
+.logo{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:16px;}
+.logo-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#6c63ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:3px 3px 8px rgba(108,99,255,.4);}
+.logo-name{font-family:var(--font-display);font-weight:700;font-size:15px;}
+.logo-sub{font-size:10px;color:var(--text-muted);}
+
+/* ── Nav ── */
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text-muted);font-size:13px;font-weight:500;transition:all .2s;border:none;background:none;width:100%;text-align:left;}
+.nav:hover{color:var(--accent);box-shadow:var(--neo-sm);}
+.nav.active{color:var(--accent);box-shadow:var(--neo-inset);}
+.nav-icon{font-size:17px;width:20px;text-align:center;flex-shrink:0;}
+
+/* ── Auto status ── */
+.auto-box{background:var(--bg);box-shadow:var(--neo-inset);border-radius:var(--radius-sm);padding:12px;margin-top:auto;}
+.auto-lbl{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;}
+.auto-row{display:flex;align-items:center;justify-content:space-between;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--text-light);transition:.3s;display:inline-block;margin-right:6px;}
+.dot.on{background:var(--success);box-shadow:0 0 8px rgba(67,233,123,.6);animation:pdot 2s infinite;}
+@keyframes pdot{0%,100%{box-shadow:0 0 8px rgba(67,233,123,.5);}50%{box-shadow:0 0 18px rgba(67,233,123,.9);}}
+
+/* ── Toggle ── */
+.tgl-wrap{position:relative;width:50px;height:26px;display:inline-block;}
+.tgl-wrap input{opacity:0;width:0;height:0;}
+.tgl-track{position:absolute;inset:0;border-radius:26px;background:var(--bg);box-shadow:var(--neo-inset);cursor:pointer;transition:.3s;}
+.tgl-thumb{position:absolute;left:4px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--bg);box-shadow:var(--neo-sm);transition:.3s;}
+input:checked+.tgl-track{background:linear-gradient(135deg,var(--accent),#a855f7);}
+input:checked+.tgl-track .tgl-thumb{transform:translateX(24px);background:#fff;}
+
+/* ── Theme toggle ── */
+.theme-btn{position:fixed;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:none;background:var(--bg);box-shadow:var(--neo-sm);cursor:pointer;font-size:18px;transition:all .2s;z-index:20;}
+.theme-btn:hover{box-shadow:var(--neo-raised);}
+
+/* ── Pages ── */
+.page{display:none;animation:fadeIn .3s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── Page header ── */
+.ph{margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;}
+.pt{font-family:var(--font-display);font-size:clamp(20px,3vw,26px);font-weight:800;color:var(--text);}
+.ps{font-size:13px;color:var(--text-muted);margin-top:3px;}
+
+/* ── Stats ── */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:900px){.sg{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.sg{grid-template-columns:1fr;}}
+.sc{background:var(--bg);box-shadow:var(--neo-raised);border-radius:var(--radius);padding:20px;}
+.si{font-size:22px;margin-bottom:8px;}
+.sv{font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--text);line-height:1;}
+.sl{font-size:12px;color:var(--text-muted);font-weight:500;margin-top:4px;}
+.sd{font-size:11px;font-weight:700;margin-top:6px;color:var(--success);}
+
+/* ── Section card ── */
+.card{background:var(--bg);box-shadow:var(--neo-raised);border-radius:var(--radius);padding:22px;margin-bottom:20px;}
+.ct{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:600px){.g2{grid-template-columns:1fr;}}
+
+/* ── Buttons ── */
+.btn{padding:10px 20px;border-radius:var(--radius-pill);border:none;font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;}
+.btn-p{background:linear-gradient(135deg,#6c63ff,#a855f7);color:#fff;box-shadow:4px 4px 10px rgba(108,99,255,.35);}
+.btn-p:hover{transform:translateY(-1px);box-shadow:6px 6px 16px rgba(108,99,255,.45);}
+.btn-s{background:var(--bg);color:var(--text);box-shadow:var(--neo-sm);}
+.btn-s:hover{box-shadow:var(--neo-raised);}
+.btn-sm{padding:7px 14px;font-size:12px;}
+
+/* ── Job card ── */
+.jc{background:var(--bg);box-shadow:var(--neo-raised);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s;border-left:4px solid transparent;margin-bottom:10px;}
+.jc:hover{transform:translateY(-2px);box-shadow:var(--neo-float);}
+.jc.applied{border-left-color:var(--accent);}
+.jc.interview{border-left-color:var(--success);}
+.jc.rejected{border-left-color:var(--danger);}
+.jt{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.jtitle{font-size:14px;font-weight:700;color:var(--text);}
+.jco{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.jsc{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--accent);flex-shrink:0;}
+.jmeta{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+.badge{padding:4px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;}
+.b-acc{background:var(--accent-dim);color:var(--accent);}
+.b-grn{background:rgba(67,233,123,.14);color:#22863a;}
+.b-red{background:rgba(245,87,108,.14);color:#c53030;}
+.b-gld{background:rgba(244,185,66,.14);color:#975a16;}
+.b-mute{background:rgba(163,177,198,.15);color:var(--text-muted);}
+
+/* ── Progress ring ── */
+.rw{display:flex;align-items:center;gap:20px;}
+.rc{position:relative;display:inline-flex;align-items:center;justify-content:center;}
+.rc svg{transform:rotate(-90deg);}
+.rct{fill:none;stroke:rgba(163,177,198,.3);stroke-width:8;}
+.rcf{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);}
+.rcl{position:absolute;font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--text);}
+
+/* ── Automation steps ── */
+.steps{display:flex;flex-direction:column;gap:8px;}
+.step{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-sm);background:var(--bg);transition:all .3s;}
+.step.pend{box-shadow:var(--neo-sm);opacity:.5;}
+.step.run{box-shadow:var(--neo-inset);}
+.step.done{box-shadow:var(--neo-sm);}
+.sico{font-size:18px;width:26px;text-align:center;flex-shrink:0;}
+.spin{display:inline-block;animation:spin 1.2s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.stxt{flex:1;font-size:13px;font-weight:600;color:var(--text);}
+.ssub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.sbadge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;}
+.sbadge.run{background:var(--accent-dim);color:var(--accent);}
+.sbadge.done{background:rgba(67,233,123,.14);color:#22863a;}
+
+/* ── Log console ── */
+.log{background:#131725;border-radius:var(--radius-sm);padding:14px;height:170px;overflow-y:auto;font-family:monospace;font-size:11px;color:#e2e8f0;}
+.li{margin-bottom:3px;line-height:1.6;}
+.li.info{color:#90cdf4;}.li.ok{color:#68d391;}.li.err{color:#fc8181;}.li.warn{color:#f6ad55;}
+
+/* ── Chips ── */
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{padding:4px 11px;border-radius:var(--radius-pill);font-size:11px;font-weight:600;background:var(--bg);box-shadow:var(--neo-sm);color:var(--text);}
+.chip-a{color:var(--accent);background:var(--accent-dim);box-shadow:none;}
+
+/* ── Plans ── */
+.plans-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:1100px){.plans-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:580px){.plans-grid{grid-template-columns:1fr;}}
+.plan{background:var(--bg);box-shadow:var(--neo-raised);border-radius:var(--radius);padding:24px 18px;position:relative;display:flex;flex-direction:column;gap:0;transition:all .2s;}
+.plan:hover{transform:translateY(-3px);box-shadow:var(--neo-float);}
+.plan.pop{border:2px solid var(--accent);}
+.pop-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--accent),#a855f7);color:#fff;font-size:11px;font-weight:800;padding:4px 14px;border-radius:var(--radius-pill);white-space:nowrap;}
+.pname{font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:10px;}
+.pprice{display:flex;align-items:baseline;gap:2px;margin-bottom:4px;}
+.pamt{font-family:var(--font-display);font-size:38px;font-weight:800;color:var(--accent);line-height:1;}
+.pcur{font-size:18px;font-weight:700;color:var(--text-muted);}
+.pper{font-size:12px;color:var(--text-muted);margin-left:2px;}
+.ptrial{font-size:11px;color:var(--success);font-weight:700;margin-bottom:16px;}
+.pfeats{list-style:none;margin:0 0 20px;flex:1;display:flex;flex-direction:column;gap:9px;}
+.pfeats li{font-size:12px;color:var(--text);display:flex;gap:7px;}
+.pfeats li::before{content:"✓";color:var(--success);font-weight:700;flex-shrink:0;}
+
+/* ── Upload ── */
+.uz{padding:42px 20px;text-align:center;border:2px dashed rgba(108,99,255,.25);border-radius:var(--radius);background:var(--bg);box-shadow:var(--neo-inset);cursor:pointer;transition:all .2s;margin-bottom:16px;}
+.uz:hover{border-color:var(--accent);}
+.uzico{font-size:46px;margin-bottom:10px;}
+.uztit{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.uzsub{font-size:12px;color:var(--text-muted);}
+
+/* ── In-App Apply Modal ── */
+.modal-ov{position:fixed;inset:0;background:rgba(163,177,198,.45);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;display:none;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--bg);box-shadow:var(--neo-float);border-radius:20px;padding:28px;max-width:440px;width:100%;animation:fadeIn .3s ease;}
+.modal-hdr{margin-bottom:18px;}
+.modal-ttl{font-family:var(--font-display);font-size:18px;font-weight:700;}
+.modal-sub{font-size:13px;color:var(--text-muted);margin-top:4px;}
+.apply-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.ast{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:var(--radius-sm);background:var(--bg);transition:all .3s;}
+.ast.pend{box-shadow:var(--neo-sm);opacity:.4;}
+.ast.run{box-shadow:var(--neo-inset);}
+.ast.done{box-shadow:var(--neo-sm);}
+.ast-ico{font-size:18px;flex-shrink:0;width:24px;text-align:center;}
+.ast-lbl{flex:1;font-size:13px;font-weight:600;color:var(--text);}
+.ast-res{font-size:10px;color:var(--success);font-weight:700;}
+.apply-result{padding:14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;margin-bottom:14px;text-align:center;}
+.apply-result.ok{background:rgba(67,233,123,.12);color:#22863a;}
+.apply-result.fail{background:rgba(245,87,108,.12);color:#c53030;}
+</style>
+</head>
+<body data-theme="light">
+
+<button class="theme-btn" onclick="toggleTheme()" title="Toggle dark/light">🌙</button>
+
+<div class="shell">
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    <div><div class="logo-name">AutoApply AI</div><div class="logo-sub">Job Automation</div></div>
+  </div>
+  <button class="nav active" onclick="show('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</button>
+  <button class="nav" onclick="show('resume',this)"><span class="nav-icon">📄</span> My Resume</button>
+  <button class="nav" onclick="show('jobs',this)"><span class="nav-icon">💼</span> Applications</button>
+  <button class="nav" onclick="show('automation',this)"><span class="nav-icon">⚡</span> Automation</button>
+  <button class="nav" onclick="show('plans',this)"><span class="nav-icon">💎</span> Plans</button>
+  <button class="nav" onclick="show('settings',this)"><span class="nav-icon">⚙️</span> Settings</button>
+
+  <div class="auto-box">
+    <div class="auto-lbl">Automation</div>
+    <div class="auto-row">
+      <span style="font-size:13px;font-weight:600;display:flex;align-items:center;">
+        <span class="dot" id="adot"></span><span id="albl">Inactive</span>
+      </span>
+      <label class="tgl-wrap">
+        <input type="checkbox" id="atgl" onchange="toggleAuto(this.checked)">
+        <span class="tgl-track"><span class="tgl-thumb"></span></span>
+      </label>
+    </div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:6px;" id="anext">Toggle to activate</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ════ DASHBOARD ════ -->
+<div class="page active" id="page-dashboard">
+  <div class="ph">
+    <div><div class="pt">Dashboard 👋</div><div class="ps">Welcome back. Here's your job hunt summary.</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-s btn-sm">💎 Free Plan</button>
+      <button class="btn btn-p btn-sm" onclick="runNow()">⚡ Run Now</button>
+    </div>
+  </div>
+
+  <div class="sg">
+    <div class="sc"><div class="si">📤</div><div class="sv" id="d-total">0</div><div class="sl">Total Applied</div><div class="sd" id="d-today">+0 today</div></div>
+    <div class="sc"><div class="si">🎯</div><div class="sv" id="d-rate">—</div><div class="sl">Avg Match Score</div><div class="sd">AI scored</div></div>
+    <div class="sc"><div class="si">🤙</div><div class="sv" id="d-int">0</div><div class="sl">Interviews</div><div class="sd">Active</div></div>
+    <div class="sc"><div class="si">⭐</div><div class="sv" id="d-ats">—</div><div class="sl">ATS Score</div><div class="sd">Upload resume</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="ct"><span>⚡</span> Today's Progress</div>
+      <div class="rw">
+        <div class="rc">
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <circle class="rct" cx="55" cy="55" r="44"/>
+            <circle class="rcf" id="ring" cx="55" cy="55" r="44" stroke-dasharray="276.5" stroke-dashoffset="276.5"/>
+          </svg>
+          <span class="rcl" id="ring-lbl">0/20</span>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--text);" id="day-count">0 <span style="font-size:14px;color:var(--text-muted);font-weight:400;">/ 20</span></div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Today's applications</div>
+          <button class="btn btn-s btn-sm" style="margin-top:12px;" onclick="show('automation',document.querySelectorAll('.nav')[3])">View Log →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct"><span>📱</span> Recent Activity</div>
+      <div id="activity" style="display:flex;flex-direction:column;gap:0;">
+        <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No activity yet — run automation to start</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct" style="justify-content:space-between;">
+      <span><span>💼</span> Latest Applications</span>
+      <button class="btn btn-s btn-sm" onclick="show('jobs',document.querySelectorAll('.nav')[2])">View All →</button>
+    </div>
+    <div id="latest-jobs">
+      <div style="text-align:center;padding:36px;color:var(--text-muted);">
+        <div style="font-size:42px;margin-bottom:10px;">📭</div>
+        <div style="font-weight:600;">No applications yet</div>
+        <div style="font-size:12px;margin-top:4px;">Activate automation to start applying automatically</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ RESUME ════ -->
+<div class="page" id="page-resume">
+  <div class="ph">
+    <div><div class="pt">My Resume 📄</div><div class="ps">AI parses, optimises, and tailors before every application.</div></div>
+  </div>
+  <div id="upload-view">
+    <div class="card">
+      <div class="ct"><span>⬆️</span> Upload Resume</div>
+      <div class="uz" onclick="parseResume()">
+        <div class="uzico">📋</div>
+        <div class="uztit">Drop PDF or click to browse</div>
+        <div class="uzsub">PDF · DOC · DOCX · TXT — max 5MB</div>
+        <button class="btn btn-s btn-sm" style="margin-top:14px;" onclick="event.stopPropagation();parseResume()">Choose File</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct"><span>📝</span> Or Paste Resume Text</div>
+      <textarea id="rtxt" style="width:100%;padding:13px 16px;background:var(--bg);border:none;border-radius:10px;box-shadow:var(--neo-inset);font-family:var(--font-body);font-size:13px;color:var(--text);outline:none;resize:vertical;height:180px;" placeholder="Paste resume text here…&#10;&#10;Name, email, skills, experience, education…"></textarea>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button class="btn btn-p" onclick="parseResume()" id="parse-btn">🤖 Parse &amp; Optimise</button>
+        <button class="btn btn-s btn-sm" onclick="loadSample()">Load sample</button>
+      </div>
+    </div>
+  </div>
+  <div id="parsed-view" style="display:none;">
+    <div class="g2" style="margin-bottom:18px;">
+      <div class="card" style="text-align:center;">
+        <div style="display:inline-flex;position:relative;align-items:center;justify-content:center;">
+          <svg width="130" height="130" viewBox="0 0 130 130" style="transform:rotate(-90deg)">
+            <circle fill="none" stroke="rgba(163,177,198,.3)" stroke-width="9" cx="65" cy="65" r="54"/>
+            <circle fill="none" stroke="var(--success)" stroke-width="9" stroke-linecap="round" cx="65" cy="65" r="54"
+              stroke-dasharray="339.3" id="ats-ring" stroke-dashoffset="339.3"/>
+          </svg>
+          <span style="position:absolute;font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);" id="ats-val">0</span>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-top:8px;">ATS Score</div>
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--success);margin-top:4px;" id="ats-grade">Excellent ⭐</div>
+        <button class="btn btn-s btn-sm" style="margin-top:14px;" onclick="reoptimise()">🔄 Re-optimise</button>
+      </div>
+      <div class="card">
+        <div class="ct"><span>👤</span> Profile</div>
+        <div style="font-size:20px;font-weight:800;color:var(--text);" id="p-name">–</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:4px;" id="p-role">–</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;" id="p-email">–</div>
+        <hr style="border:none;border-top:1px solid rgba(163,177,198,.25);margin:14px 0;">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Target Roles</div>
+        <div class="chips" id="p-roles"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct"><span>🛠</span> Skills</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">TECHNICAL</div>
+      <div class="chips" id="p-tech"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 8px;">SOFT SKILLS</div>
+      <div class="chips" id="p-soft"></div>
+    </div>
+    <div class="card">
+      <div class="ct"><span>✨</span> AI Improvements</div>
+      <div id="p-imps"></div>
+    </div>
+    <button class="btn btn-s" onclick="resetResume()">↩ Upload Different Resume</button>
+  </div>
+</div>
+
+<!-- ════ JOBS ════ -->
+<div class="page" id="page-jobs">
+  <div class="ph">
+    <div><div class="pt">Applications 💼</div><div class="ps">Every job applied on your behalf — tracked here.</div></div>
+    <button class="btn btn-p btn-sm" onclick="addJob()">+ Add Demo Job</button>
+  </div>
+  <div class="card" style="padding:12px 16px;margin-bottom:16px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;">Filter:</span>
+      <button class="btn btn-s btn-sm filter-btn active-f" data-f="all" onclick="filterJobs('all',this)">All</button>
+      <button class="btn btn-s btn-sm filter-btn" data-f="applied" onclick="filterJobs('applied',this)">Applied</button>
+      <button class="btn btn-s btn-sm filter-btn" data-f="interview" onclick="filterJobs('interview',this)">Interview 🎉</button>
+      <button class="btn btn-s btn-sm filter-btn" data-f="rejected" onclick="filterJobs('rejected',this)">Rejected</button>
+    </div>
+  </div>
+  <div id="jobs-list">
+    <div style="text-align:center;padding:48px;color:var(--text-muted);">
+      <div style="font-size:46px;margin-bottom:12px;">📭</div>
+      <div style="font-weight:600;">No applications yet</div>
+      <div style="font-size:12px;margin-top:4px;">Run automation or click "Add Demo Job"</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ AUTOMATION ════ -->
+<div class="page" id="page-automation">
+  <div class="ph">
+    <div><div class="pt">Automation Engine ⚡</div><div class="ps">Real-time view of your automated job hunt</div></div>
+    <button class="btn btn-p" onclick="runNow()" id="run-btn">▶ Run Now</button>
+  </div>
+  <div class="card">
+    <div class="ct" style="justify-content:space-between;">
+      <span><span>🔄</span> Current Run</span>
+      <span id="run-status" class="badge b-mute">Idle</span>
+    </div>
+    <div class="steps" id="steps">
+      <div class="step pend" id="s1"><div class="sico">🔍</div><div><div class="stxt">Searching Jobs</div><div class="ssub">Adzuna · Remotive · Himalayas</div></div><span></span></div>
+      <div class="step pend" id="s2"><div class="sico">🤖</div><div><div class="stxt">AI Matching</div><div class="ssub">Scoring against your profile</div></div><span></span></div>
+      <div class="step pend" id="s3"><div class="sico">✍️</div><div><div class="stxt">Cover Letters</div><div class="ssub">Tailored per job via AI</div></div><span></span></div>
+      <div class="step pend" id="s4"><div class="sico">📤</div><div><div class="stxt">Auto Apply</div><div class="ssub">Submitting applications</div></div><span></span></div>
+      <div class="step pend" id="s5"><div class="sico">📱</div><div><div class="stxt">Notify</div><div class="ssub">WhatsApp + Email updates</div></div><span></span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct" style="justify-content:space-between;"><span><span>🖥</span> Live Log</span><button class="btn btn-s btn-sm" onclick="clearLog()">Clear</button></div>
+    <div class="log" id="log">
+      <div class="li info">[System] AutoApply AI v1.0 ready</div>
+      <div class="li info">[System] Upload resume and activate automation to begin</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PLANS ════ -->
+<div class="page" id="page-plans">
+  <div class="ph"><div><div class="pt">Choose Your Plan 💎</div><div class="ps">Start free. Upgrade for more power.</div></div></div>
+  <div class="plans-grid">
+    <div class="plan">
+      <div class="pname">Free</div>
+      <div class="pprice"><span class="pamt">₹0</span><span class="pper">/forever</span></div>
+      <div class="ptrial">&nbsp;</div>
+      <ul class="pfeats">
+        <li>3 applications/day</li><li>Remotive only</li><li>Basic AI parse</li><li>Email alerts</li>
+      </ul>
+      <button class="btn btn-s" style="width:100%;justify-content:center;">Current Plan</button>
+    </div>
+    <div class="plan">
+      <div class="pname">Starter</div>
+      <div class="pprice"><span class="pcur">₹</span><span class="pamt">299</span><span class="pper">/mo</span></div>
+      <div class="ptrial">7-day free trial</div>
+      <ul class="pfeats">
+        <li>15 applications/day</li><li>Remotive + Himalayas</li><li>AI resume tailoring</li><li>WhatsApp + Email</li>
+      </ul>
+      <button class="btn btn-s" style="width:100%;justify-content:center;" onclick="alert('Stripe checkout → configure STRIPE keys in backend/.env')">Start Trial</button>
+    </div>
+    <div class="plan pop">
+      <div class="pop-badge">⚡ Most Popular</div>
+      <div class="pname">Pro</div>
+      <div class="pprice"><span class="pcur">₹</span><span class="pamt">699</span><span class="pper">/mo</span></div>
+      <div class="ptrial">7-day free trial</div>
+      <ul class="pfeats">
+        <li>50 applications/day</li><li>All boards + Adzuna</li><li>⚡ Real-time (2 min)</li><li>AI tailoring per job</li><li>Priority queue</li>
+      </ul>
+      <button class="btn btn-p" style="width:100%;justify-content:center;" onclick="alert('Stripe checkout → configure STRIPE keys')">Go Pro</button>
+    </div>
+    <div class="plan">
+      <div class="pname">Elite</div>
+      <div class="pprice"><span class="pcur">₹</span><span class="pamt">1499</span><span class="pper">/mo</span></div>
+      <div class="ptrial">7-day free trial</div>
+      <ul class="pfeats">
+        <li>200 applications/day</li><li>LinkedIn · Naukri · Indeed</li><li>⚡ Real-time (1 min)</li><li>In-app apply all platforms</li><li>Advanced analytics</li>
+      </ul>
+      <button class="btn btn-s" style="width:100%;justify-content:center;" onclick="alert('Stripe checkout → configure STRIPE keys')">Go Elite</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ SETTINGS ════ -->
+<div class="page" id="page-settings">
+  <div class="ph"><div><div class="pt">Settings ⚙️</div><div class="ps">Configure automation, notifications, integrations.</div></div></div>
+  <div class="card">
+    <div class="ct"><span>🎯</span> Job Preferences</div>
+    <div class="g2">
+      <div><label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px;">Target Roles</label>
+        <input style="width:100%;padding:12px 16px;background:var(--bg);border:none;border-radius:10px;box-shadow:var(--neo-inset);font-size:13px;color:var(--text);outline:none;" value="Full Stack Dev, MEAN Stack, Node.js Dev"></div>
+      <div><label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px;">Locations</label>
+        <input style="width:100%;padding:12px 16px;background:var(--bg);border:none;border-radius:10px;box-shadow:var(--neo-inset);font-size:13px;color:var(--text);outline:none;" value="Remote, Bangalore, Mumbai"></div>
+    </div>
+    <button class="btn btn-p btn-sm" onclick="alert('Settings saved! (Connect backend to persist)')">Save Preferences</button>
+  </div>
+  <div class="card">
+    <div class="ct"><span>🔗</span> Platform Integrations</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+      <div style="background:var(--bg);box-shadow:var(--neo-sm);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:6px;">🌐</div><div style="font-size:12px;font-weight:700;">Remotive</div>
+        <div style="font-size:10px;color:var(--success);font-weight:700;margin-top:4px;">✓ Active (Free)</div>
+      </div>
+      <div style="background:var(--bg);box-shadow:var(--neo-sm);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:6px;">🏔️</div><div style="font-size:12px;font-weight:700;">Himalayas</div>
+        <div style="font-size:10px;color:var(--success);font-weight:700;margin-top:4px;">✓ Active (Free)</div>
+      </div>
+      <div style="background:var(--bg);box-shadow:var(--neo-sm);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:6px;">📡</div><div style="font-size:12px;font-weight:700;">Adzuna</div>
+        <div style="font-size:10px;color:var(--accent);font-weight:700;margin-top:4px;">Pro Plan</div>
+      </div>
+      <div style="background:var(--bg);box-shadow:var(--neo-sm);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:6px;">💼</div><div style="font-size:12px;font-weight:700;">LinkedIn</div>
+        <div style="font-size:10px;color:var(--accent);font-weight:700;margin-top:4px;">Elite Plan</div>
+      </div>
+      <div style="background:var(--bg);box-shadow:var(--neo-sm);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:6px;">🇮🇳</div><div style="font-size:12px;font-weight:700;">Naukri</div>
+        <div style="font-size:10px;color:var(--accent);font-weight:700;margin-top:4px;">Elite Plan</div>
+      </div>
+      <div style="background:var(--bg);box-shadow:var(--neo-sm);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:6px;">🔍</div><div style="font-size:12px;font-weight:700;">Indeed</div>
+        <div style="font-size:10px;color:var(--accent);font-weight:700;margin-top:4px;">Elite Plan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- In-App Apply Modal -->
+<div class="modal-ov" id="apply-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-ttl">🤖 Applying In-App</div>
+      <div class="modal-sub" id="apply-job-label">Full Stack Dev @ Google</div>
+    </div>
+    <div class="apply-steps" id="apply-steps">
+      <div class="ast pend" id="ast1"><div class="ast-ico">🎯</div><div class="ast-lbl">AI scoring job match</div><span class="ast-res"></span></div>
+      <div class="ast pend" id="ast2"><div class="ast-ico">✍️</div><div class="ast-lbl">Tailoring resume for job</div><span class="ast-res"></span></div>
+      <div class="ast pend" id="ast3"><div class="ast-ico">📝</div><div class="ast-lbl">Generating cover letter</div><span class="ast-res"></span></div>
+      <div class="ast pend" id="ast4"><div class="ast-ico">🌐</div><div class="ast-lbl">Launching browser session</div><span class="ast-res"></span></div>
+      <div class="ast pend" id="ast5"><div class="ast-ico">📤</div><div class="ast-lbl">Submitting application</div><span class="ast-res"></span></div>
+    </div>
+    <div id="apply-result" style="display:none;" class="apply-result ok">✅ Applied successfully!</div>
+    <button class="btn btn-s" style="width:100%;justify-content:center;" id="close-modal" onclick="closeModal()" style="display:none;">Close</button>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+const S = { auto:false, resumeUploaded:false, apps:[], daily:0, limit:20 };
+
+// ── Navigation ─────────────────────────────────────────────────────────────────
+function show(id, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const d = document.body;
+  const t = d.getAttribute('data-theme')==='dark'?'light':'dark';
+  d.setAttribute('data-theme',t);
+  document.querySelector('.theme-btn').textContent = t==='dark'?'☀️':'🌙';
+}
+
+// ── Automation ─────────────────────────────────────────────────────────────────
+function toggleAuto(on) {
+  if(on && !S.resumeUploaded) {
+    document.getElementById('atgl').checked=false;
+    alert('Upload your resume first!');
+    show('resume',document.querySelectorAll('.nav')[1]);
+    return;
+  }
+  S.auto=on;
+  document.getElementById('adot').classList.toggle('on',on);
+  document.getElementById('albl').textContent=on?'Active':'Inactive';
+  document.getElementById('anext').textContent=on?'Next run in 6 hours':'Toggle to activate';
+  if(on) { toast('🚀 Automation activated!','ok'); setTimeout(()=>runNow(),1500); }
+  else toast('Automation paused','info');
+}
+
+// ── Resume ─────────────────────────────────────────────────────────────────────
+function loadSample() {
+  document.getElementById('rtxt').value=`John Doe | Full Stack Developer | john@example.com
+Skills: Angular, Node.js, MongoDB, Express.js, TypeScript, REST APIs, Git, LangChain, Docker
+Experience:
+  KiteSuite (2023-Present) — Full Stack Developer
+  - Built AI workspace features reducing task time by 40%
+  - Developed APIs for 10k+ daily users
+  - Integrated LangChain for document Q&A
+Education: B.Tech CS, XYZ University 2022, CGPA 8.2
+Projects: RAG Chatbot (LangChain+Angular), Fleet Management System`;
+}
+
+function parseResume() {
+  const txt = document.getElementById('rtxt').value.trim();
+  if(!txt) { toast('Paste resume text first','err'); return; }
+  const btn = document.getElementById('parse-btn');
+  btn.textContent='⏳ Parsing…'; btn.disabled=true;
+  setTimeout(()=>{
+    const parsed = {
+      name:'John Doe', role:'Full Stack Developer', email:'john@example.com',
+      atsScore:91, grade:'Excellent ⭐',
+      roles:['Full Stack Developer','MEAN Stack Dev','Node.js Developer'],
+      tech:['Angular','Node.js','MongoDB','Express.js','TypeScript','REST APIs','Git','LangChain','Docker'],
+      soft:['Problem Solving','Team Collaboration','Agile','Communication'],
+      imps:['Added quantified achievements with %/user metrics','Inserted ATS keywords: LangChain, REST APIs, GenAI','Strengthened action verbs throughout','Optimised summary for keyword density']
+    };
+    showParsed(parsed);
+    btn.textContent='🤖 Parse & Optimise'; btn.disabled=false;
+    S.resumeUploaded=true;
+    document.getElementById('d-ats').textContent=parsed.atsScore+'%';
+    toast('✅ Resume parsed & optimised!','ok');
+  },2200);
+}
+
+function showParsed(p) {
+  document.getElementById('upload-view').style.display='none';
+  document.getElementById('parsed-view').style.display='block';
+  // ATS ring
+  let v=0; const tgt=p.atsScore, el=document.getElementById('ats-val'), ring=document.getElementById('ats-ring');
+  const t=setInterval(()=>{ v=Math.min(v+2,tgt); el.textContent=v; ring.style.strokeDashoffset=339.3*(1-v/100); if(v>=tgt)clearInterval(t); },30);
+  document.getElementById('ats-grade').textContent=p.grade;
+  document.getElementById('p-name').textContent=p.name;
+  document.getElementById('p-role').textContent=p.role;
+  document.getElementById('p-email').textContent=p.email;
+  document.getElementById('p-roles').innerHTML=p.roles.map(r=>`<span class="chip chip-a">${r}</span>`).join('');
+  document.getElementById('p-tech').innerHTML=p.tech.map(s=>`<span class="chip">${s}</span>`).join('');
+  document.getElementById('p-soft').innerHTML=p.soft.map(s=>`<span class="chip">${s}</span>`).join('');
+  document.getElementById('p-imps').innerHTML=p.imps.map(i=>`<div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text);margin-bottom:8px;line-height:1.5;"><span style="color:var(--success);font-weight:700;flex-shrink:0;">✓</span><span>${i}</span></div>`).join('');
+}
+
+function reoptimise() {
+  toast('🔄 Re-optimising with AI…','info');
+  setTimeout(()=>{ const v=Math.min(91+Math.floor(Math.random()*6),99); document.getElementById('ats-val').textContent=v; document.getElementById('d-ats').textContent=v+'%'; toast(`✅ Re-optimised! ATS: ${v}%`,'ok'); },2000);
+}
+function resetResume() { document.getElementById('upload-view').style.display='block'; document.getElementById('parsed-view').style.display='none'; document.getElementById('rtxt').value=''; }
+
+// ── Automation run ─────────────────────────────────────────────────────────────
+const COMPANIES=[['Google','Senior SWE'],['Razorpay','Full Stack Dev'],['Freshworks','Node.js Dev'],['Zoho','Angular Dev'],['Swiggy','Backend Dev'],['PhonePe','MEAN Stack Dev'],['CRED','Full Stack Dev'],['Atlassian','SWE'],['Postman','React+Node'],['Flipkart','Platform Dev']];
+const SOURCES=['Remotive','Himalayas','Adzuna'];
+
+async function runNow() {
+  if(!S.resumeUploaded){toast('Upload resume first!','err');show('resume',document.querySelectorAll('.nav')[1]);return;}
+  const btn=document.getElementById('run-btn');
+  btn.disabled=true; btn.textContent='⏳ Running…';
+  document.getElementById('run-status').textContent='Running';
+  document.getElementById('run-status').className='badge b-acc';
+  show('automation',document.querySelectorAll('.nav')[3]);
+  clearLog(); resetSteps();
+
+  await step('s1','🔍',2200,'Search','Found 67 jobs',['info','Connecting to Remotive…','ok','Found 34 remote jobs','info','Scanning Himalayas…','ok','Found 33 more jobs']);
+  await step('s2','🤖',2500,'Match','8 matched ≥70%',['info','Running AI match…','ok','8 jobs qualify (score ≥70%)','warn','3 jobs below threshold']);
+  const cnt=Math.min(8,S.limit-S.daily);
+  await step('s3','✍️',2000,'Letters',`${cnt} letters ready`,['info','Generating tailored cover letters…','ok','Letters ready for all matches']);
+  const applied=[];
+  for(let i=0;i<cnt;i++){
+    const [co,ro]=COMPANIES[i];
+    const sc=72+Math.floor(Math.random()*25);
+    addLog('ok',`📤 Applied: ${ro} @ ${co} (${sc}% match)`);
+    applied.push({co,ro,sc,src:SOURCES[i%3],st:'applied'});
+    await delay(350);
+  }
+  markStep('s4','✓ '+cnt+' applied');
+  await delay(600);
+  await step('s5','📱',1000,'Notify','Sent',['ok','WhatsApp summary sent','ok','Email digest sent via Resend']);
+
+  // Update state & UI
+  S.daily+=cnt; applied.forEach(a=>S.apps.unshift(a));
+  updateDash(); renderJobs();
+  document.getElementById('run-status').textContent='Completed';
+  document.getElementById('run-status').className='badge b-grn';
+  btn.disabled=false; btn.textContent='▶ Run Now';
+  toast(`🎉 Applied to ${cnt} jobs!`,'ok');
+}
+
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+async function step(id,ico,ms,lbl,res,logs){
+  const el=document.getElementById(id);
+  el.className='step run';
+  el.innerHTML=`<div class="sico"><span class="spin">${ico}</span></div><div><div class="stxt">${lbl}</div><div class="ssub">In progress…</div></div><span class="sbadge run">Running…</span>`;
+  for(let i=0;i<logs.length;i+=2){ await delay(ms/Math.max(logs.length/2,1)); addLog(logs[i],logs[i+1]); }
+  await delay(ms/2);
+  markStep(id,res,ico);
+}
+function markStep(id,res,ico=''){
+  const el=document.getElementById(id);
+  el.className='step done';
+  if(ico) el.querySelector('.sico').innerHTML=ico;
+  const last=el.querySelector('span:last-child')||el.querySelector('.sbadge');
+  if(last){last.className='sbadge done';last.textContent='✓ '+res;}
+}
+function resetSteps(){for(let i=1;i<=5;i++){const el=document.getElementById('s'+i);if(el){el.className='step pend';const sp=el.querySelectorAll('span');sp.forEach(s=>{s.className='';s.textContent='';});}}}
+
+// ── Log ────────────────────────────────────────────────────────────────────────
+function addLog(type,msg){
+  const el=document.getElementById('log');
+  const t=new Date().toLocaleTimeString();
+  el.insertAdjacentHTML('beforeend',`<div class="li ${type}">[${t}] ${msg}</div>`);
+  el.scrollTop=el.scrollHeight;
+}
+function clearLog(){document.getElementById('log').innerHTML='<div class="li info">[System] Log cleared</div>';}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────────
+function updateDash(){
+  document.getElementById('d-total').textContent=S.apps.length;
+  document.getElementById('d-today').textContent='+'+S.daily+' today';
+  const interviews=S.apps.filter(a=>a.st==='interview').length;
+  document.getElementById('d-int').textContent=interviews;
+  const avg=S.apps.length?Math.round(S.apps.reduce((a,b)=>a+b.sc,0)/S.apps.length):0;
+  document.getElementById('d-rate').textContent=avg?avg+'%':'—';
+  // Ring
+  const pct=Math.min(S.daily/S.limit,1);
+  document.getElementById('ring').style.strokeDashoffset=276.5*(1-pct);
+  document.getElementById('ring-lbl').textContent=S.daily+'/'+S.limit;
+  document.getElementById('day-count').innerHTML=S.daily+' <span style="font-size:14px;color:var(--text-muted);font-weight:400;">/ '+S.limit+'</span>';
+  // Activity
+  const af=document.getElementById('activity');
+  if(S.apps.length){
+    af.innerHTML=S.apps.slice(0,4).map(a=>`
+      <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(163,177,198,.15);align-items:center;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--success);flex-shrink:0;box-shadow:0 0 6px rgba(67,233,123,.5);"></div>
+        <div style="flex:1;font-size:12px;font-weight:600;color:var(--text);">${a.ro} @ ${a.co}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${a.sc}%</div>
+      </div>`).join('');
+  }
+  renderLatest();
+}
+
+function renderLatest(){
+  const el=document.getElementById('latest-jobs');
+  if(!S.apps.length)return;
+  el.innerHTML=S.apps.slice(0,5).map(a=>jobCard(a)).join('');
+}
+
+// ── Jobs ──────────────────────────────────────────────────────────────────────
+let curFilter='all';
+function renderJobs(){
+  const el=document.getElementById('jobs-list');
+  const list=curFilter==='all'?S.apps:S.apps.filter(a=>a.st===curFilter);
+  if(!list.length){el.innerHTML=`<div style="text-align:center;padding:48px;color:var(--text-muted);"><div style="font-size:42px;margin-bottom:12px;">📭</div><div style="font-weight:600;">No ${curFilter==='all'?'':curFilter} applications</div></div>`;return;}
+  el.innerHTML=list.map(a=>jobCard(a,true)).join('');
+}
+function jobCard(a,actions=false){
+  const bc={applied:'b-acc',interview:'b-grn',rejected:'b-red',offer:'b-gld'}[a.st]||'b-acc';
+  return `<div class="jc ${a.st}">
+    <div class="jt"><div><div class="jtitle">${a.ro}</div><div class="jco">${a.co}</div></div><div class="jsc">${a.sc}%</div></div>
+    <div class="jmeta">
+      <span class="badge ${bc}">${a.st}</span>
+      <span class="badge b-mute">${a.src||'Remotive'}</span>
+      <span style="font-size:11px;color:var(--text-muted);">Just now</span>
+      ${actions?`<button class="btn btn-p btn-sm" style="margin-left:auto;" onclick="openInApp('${a.ro}','${a.co}')">⚡ Apply In-App</button>`:''}
+    </div>
+  </div>`;
+}
+function filterJobs(f,btn){
+  curFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active-f'));
+  btn.classList.add('active-f');
+  renderJobs();
+}
+function addJob(){
+  const cos=[['Infosys','Full Stack Dev'],['TCS','Angular Dev'],['Wipro','Node.js Dev'],['HCL','MEAN Stack'],['Tech M','Backend Dev']];
+  const [co,ro]=cos[Math.floor(Math.random()*cos.length)];
+  const sc=68+Math.floor(Math.random()*30);
+  const sts=['applied','applied','applied','interview'];
+  const st=sts[Math.floor(Math.random()*sts.length)];
+  S.apps.unshift({co,ro,sc,src:SOURCES[Math.floor(Math.random()*3)],st});
+  S.daily++;
+  updateDash(); renderJobs();
+  toast(`Added: ${ro} @ ${co}`,'ok');
+}
+
+// ── In-App Apply Modal ─────────────────────────────────────────────────────────
+function openInApp(role,co){
+  document.getElementById('apply-job-label').textContent=role+' @ '+co;
+  document.getElementById('apply-modal').classList.add('open');
+  document.getElementById('apply-result').style.display='none';
+  document.getElementById('close-modal').style.display='none';
+  // Reset steps
+  for(let i=1;i<=5;i++){const el=document.getElementById('ast'+i);el.className='ast pend';el.querySelector('.ast-res').textContent='';}
+  animateApply();
+}
+async function animateApply(){
+  const steps=[
+    ['ast1','Scoring job match…','85% match ✓'],
+    ['ast2','Tailoring resume…','Optimised ✓'],
+    ['ast3','Writing cover letter…','240 words ✓'],
+    ['ast4','Opening browser…','Launched ✓'],
+    ['ast5','Submitting form…','Applied ✓'],
+  ];
+  for(const [id,run,done] of steps){
+    const el=document.getElementById(id);
+    el.className='ast run';
+    el.querySelector('.ast-res').textContent='';
+    el.querySelector('.ast-ico').textContent='⚙️';
+    await delay(1200+Math.random()*600);
+    el.className='ast done';
+    el.querySelector('.ast-ico').textContent='✅';
+    el.querySelector('.ast-res').textContent=done;
+  }
+  document.getElementById('apply-result').style.display='block';
+  document.getElementById('close-modal').style.display='block';
+}
+function closeModal(){document.getElementById('apply-modal').classList.remove('open');}
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+function toast(msg,type='info'){
+  const c=document.createElement('div');
+  const cols={ok:'var(--success)',err:'var(--danger)',info:'var(--accent)',warn:'var(--warning)'};
+  c.style.cssText=`position:fixed;bottom:${24+document.querySelectorAll('.toast-item').length*56}px;right:24px;z-index:9999;background:var(--bg);box-shadow:var(--neo-float);border-radius:10px;padding:13px 16px;font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:9px;border-left:4px solid ${cols[type]||cols.info};max-width:320px;animation:fadeIn .3s ease;`;
+  c.className='toast-item';
+  c.textContent=msg;
+  document.body.appendChild(c);
+  setTimeout(()=>c.remove(),3500);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+window.onload=()=>{
+  setTimeout(()=>toast('👋 Welcome to AutoApply AI! Upload your resume to get started.','info'),600);
+};
+</script>
+</body>
+</html>
