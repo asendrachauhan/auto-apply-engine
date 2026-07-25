@@ -27,7 +27,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
       <div class="tabs neo-sm">
         @for (t of tabs; track t.id) {
-          <button class="tab-btn" [class.active]="activeTab() === t.id" (click)="activeTab.set(t.id as any)">
+          <button class="tab-btn" [class.active]="activeTab() === t.id" (click)="activeTab.set((t.id) as any)">
             <aa-icon [name]="t.icon" [size]="14"/> {{ t.label | translate }}
           </button>
         }
