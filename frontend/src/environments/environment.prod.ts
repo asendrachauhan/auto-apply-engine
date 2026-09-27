@@ -7,5 +7,5 @@ export const environment = {
   // production-readiness review — do not rely on this literal string being
   // correct for any real deployment; it's only accurate immediately after
   // a Vercel build with API_URL set.
-  apiUrl: 'http://localhost:3000/api',
+  apiUrl: 'https://auto-apply-ai-323s.onrender.com/api',
 };
