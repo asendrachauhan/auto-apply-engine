@@ -12,11 +12,13 @@
  *   await sendCriticalAlert(err, { method:'GET', url:'/api/foo', userId:'...' });
  */
 'use strict';
-const { Resend }          = require('resend');
 const logger              = require('./logger');
 const { criticalAlertEmail } = require('./emailTemplates');
+const {
+  sendWithFallback,
+  isEmailConfigured,
+} = require('../services/notifications/emailTransport');
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const ALERT_EMAIL   = process.env.ALERT_EMAIL || 'asendrachauhan176@gmail.com';
 // Verified domain address OR Resend safe-sender
 const FROM_EMAIL    = process.env.RESEND_FROM_EMAIL || 'AutoApply AI <onboarding@resend.dev>';
@@ -28,13 +30,6 @@ const ENABLED = process.env.FORCE_ALERT_EMAIL !== 'false';
 // Debounce identical errors — 5 minutes per unique (message + url) pair
 const _debounce    = new Map();
 const DEBOUNCE_MS  = 5 * 60 * 1000;
-
-let _client = null;
-const getClient = () => {
-  if (_client) return _client;
-  if (RESEND_API_KEY) _client = new Resend(RESEND_API_KEY);
-  return _client;
-};
 
 /**
  * @param {Error}  err
@@ -53,9 +48,8 @@ async function sendCriticalAlert(err, context = {}) {
     return; // AI model or external API transient errors must never trigger emergency admin emails
   }
 
-  const client = getClient();
-  if (!client) {
-    logger.warn('[AlertMailer] RESEND_API_KEY not set — skipping alert');
+  if (!isEmailConfigured()) {
+    logger.warn('[AlertMailer] Neither RESEND_API_KEY nor SMTP configured — skipping alert');
     return;
   }
 
@@ -76,14 +70,15 @@ async function sendCriticalAlert(err, context = {}) {
   });
 
   try {
-    const { data, error } = await client.emails.send({
+    const result = await sendWithFallback({
       from   : FROM_EMAIL,
       to     : ALERT_EMAIL,
       subject,
       html,
     });
-    if (error) throw new Error(error.message ?? JSON.stringify(error));
-    logger.info(`[AlertMailer] Alert sent → ${ALERT_EMAIL} [id:${data?.id}]`);
+    if (result) {
+      logger.info(`[AlertMailer] Alert sent → ${ALERT_EMAIL} [provider:${result.provider}, id:${result.id}]`);
+    }
   } catch (mailErr) {
     logger.error(`[AlertMailer] Failed to send alert: ${mailErr.message}`);
   }

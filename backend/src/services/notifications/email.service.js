@@ -1,14 +1,14 @@
 /**
- * Email service — Resend SDK
+ * Email service — Resend SDK with automatic Nodemailer SMTP Fallback
  * All templates live in utils/emailTemplates.js for consistency.
  *
- * FROM address resolution (in order of priority):
- *  1. RESEND_FROM_EMAIL env var  (e.g. "AutoApply AI <hello@yourdomain.com>")
- *  2. onboarding@resend.dev      (Resend's safe-sender; works on free plan without domain verification)
+ * Sender resolution:
+ *  1. RESEND_FROM_EMAIL env var (e.g. "AutoApply AI <hello@yourdomain.com>")
+ *  2. SMTP_FROM / SMTP_USER fallback
+ *  3. onboarding@resend.dev (Resend test sender)
  */
 'use strict';
-const { Resend } = require('resend');
-const logger     = require('../../utils/logger');
+const logger = require('../../utils/logger');
 const {
   verificationEmail,
   passwordResetEmail,
@@ -16,39 +16,16 @@ const {
   applicationEmail,
   planUpgradeEmail,
 } = require('../../utils/emailTemplates');
-
-/* ─── Client ──────────────────────────────────────────────────────────────── */
-let _client = null;
-const getClient = () => {
-  if (_client) return _client;
-  if (!process.env.RESEND_API_KEY) {
-    logger.warn('[Email] RESEND_API_KEY not set — emails disabled');
-    return null;
-  }
-  _client = new Resend(process.env.RESEND_API_KEY);
-  return _client;
-};
-
-// Use verified domain address OR Resend's universal test sender as fallback
-const FROM = process.env.RESEND_FROM_EMAIL || 'AutoApply AI <onboarding@resend.dev>';
+const {
+  sendWithFallback,
+  isEmailConfigured,
+  isResendConfigured,
+  isSmtpConfigured,
+} = require('./emailTransport');
 
 /* ─── Core send ───────────────────────────────────────────────────────────── */
-const send = async ({ to, subject, html }) => {
-  const client = getClient();
-  if (!client) { logger.warn(`[Email] Skipped (no client): "${subject}" → ${to}`); return null; }
-  try {
-    const { data, error } = await client.emails.send({ from: FROM, to, subject, html });
-    if (error) throw new Error(error.message ?? JSON.stringify(error));
-    logger.info(`[Email] Sent: "${subject}" → ${to} [id:${data?.id}]`);
-    return data;
-  } catch (err) {
-    if (err.message && err.message.includes('You can only send testing emails to your own email address')) {
-      logger.warn(`[Email Sandbox] "${subject}" → ${to} — ${err.message}`);
-    } else {
-      logger.error(`[Email] Failed: "${subject}" → ${to} — ${err.message}`);
-    }
-    throw err;
-  }
+const send = async ({ to, subject, html, text, from, replyTo }) => {
+  return sendWithFallback({ to, subject, html, text, from, replyTo });
 };
 
 /* ─── Public API ──────────────────────────────────────────────────────────── */
@@ -85,4 +62,9 @@ module.exports = {
   sendPlanUpgradeEmail,
   // expose raw send for custom one-off emails
   send,
+  sendEmail: send,
+  isEmailConfigured,
+  isResendConfigured,
+  isSmtpConfigured,
 };
+

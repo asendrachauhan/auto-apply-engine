@@ -2,28 +2,36 @@
 Last updated: 2026-09-28 (Session 62)
 
 ## Snapshot
-- Backend: Express/MongoDB (Node.js v24), 35 test suites, 331 tests passing (100%).
+- Backend: Express/MongoDB (Node.js v24), 36 test suites, 349 tests passing (100%).
 - Frontend: Angular 17+ standalone components, 15 test suites, 93 tests passing (100%), TypeScript 0 errors, production build verified.
+- Email Dispatch & Free SMTP Fallback: Unified multi-tier transport with automatic failover (`emailTransport.js`). Primary: Resend SDK (`resend`). Secondary / Free Standalone: Nodemailer SMTP supporting Gmail App Passwords (500 free emails/day), Brevo/Sendinblue (300 free emails/day to any recipient without domain verification), Mailjet (200 free emails/day), or custom SMTP. Transparently rescues verification, password resets, candidate job alerts, application updates, and admin critical error mailings if Resend is unconfigured, rate-limited, or hits free sandbox restrictions ("You can only send testing emails to your own email address").
 - AI Resilience & Dual-Model Failover: Migrated from `gpt-oss-120b` (which consumed 1500+ reasoning tokens per prompt) to `qwen/qwen3.8-27b` (0 reasoning tokens, ~500ms completions, 32k context) with automatic failover to `openai/gpt-oss-20b`. Decoupled AI errors from Express (`process.exit(1)` removed) so login and non-AI features stay 100% accessible during rate limits.
 - Job Posting Date Visibility & Recency-First Scraping: Built universal `dateParser.js` supporting relative times ("Just now", "1m ago", "10 mins ago", "2 hours ago", "yesterday", array extensions). Surfaced prominent posting date badges with 24h freshness highlighting and exact timestamp tooltips across Job Alerts and Applications. Added a `Last 1 Hour (<60m)` recency filter and prioritized newest postings during discovery and scoring.
 - Naukri & Indeed Scraper Modernization: Restored live scraping with SerpApi Google Jobs targeted queries for Indeed and Google Search for Naukri, backed by `SerpApiCache`. Expanded Indian region matching to include all Indian states.
 
-## Session 62 — AI Model Migration, Rate Limit Decoupling, Posting Date Visibility & Recency Engine (2026-09-28)
+## Session 62 — Email Dispatch with Free SMTP Fallback, AI Migration, Posting Date Visibility & Recency Engine (2026-09-28)
 - **Features & Fixes**:
-  1. `backend/src/utils/dateParser.js`: Created universal date parser extracting relative times (`"1 minute ago"`, `"15 mins ago"`, `"2 hours ago"`, `"yesterday"`, array extensions like Google Jobs `extensions`, and ISO dates) into accurate `Date` objects with `formatTimeAgo()` output.
-  2. `frontend/src/app/features/job-alerts/job-alerts.component.ts`: Added card-level `.meta-tag.date` badges with clock icon, 24-hour emerald `.fresh` highlighting, exact localized timestamp hover tooltips, detail panel header badges, and a `Last 1 Hour (<60m)` recency filter option. Sorted alerts by `postedAt` descending.
-  3. `frontend/src/app/features/jobs/jobs.component.ts`: Added `.posting-date-badge` with relative time, fresh styling, exact timestamp tooltips, detail modal timestamps, and `1h` recency filtering.
-  4. `backend/src/services/jobs/serpapi.scraper.js`: Connected `parseRelativeDate` to extract `job.extensions` and `detected_extensions.posted_at`; sorted Google Jobs by recency.
-  5. `backend/src/services/jobs/naukri.scraper.js` & `indeed.rss.scraper.js`: Integrated `parseRelativeDate` on snippet and date fields, sorting jobs newest first.
-  6. `backend/src/services/jobs/jobDiscovery.service.js`: Ordered discovered candidate jobs by `postedAt` descending prior to match scoring.
-  7. `backend/src/services/automation/jobAlertEngine.service.js`: Ensured `postedAt` defaults safely to `job.postedAt || new Date()` so alert records always contain valid dates.
-  8. `backend/src/models/JobApplication.js`: Added `postedAt: { type: Date, default: null }` schema property.
-  9. Database Backfill: Backfilled all pre-existing alerts in MongoDB Atlas to ensure 100% data integrity.
+  1. `backend/src/services/notifications/emailTransport.js`: Implemented unified transport engine supporting Resend SDK with automatic Nodemailer SMTP failover (and standalone SMTP when `RESEND_API_KEY` is omitted or `EMAIL_PROVIDER=smtp`). Handles connection timeouts (10s), socket safety, sender address normalization, and sandbox restriction interception.
+  2. `backend/src/services/notifications/email.service.js`: Refactored all user notification methods (`sendVerificationEmail`, `sendPasswordResetEmail`, `sendWelcomeEmail`, `sendApplicationEmail`, `sendPlanUpgradeEmail`, and raw `send`) to use `sendWithFallback`.
+  3. `backend/src/services/notifications/jobAlert.service.js`: Wired `sendEmailAlert` to use `sendWithFallback` so job match emails automatically rescue via SMTP if Resend fails.
+  4. `backend/src/utils/alertMailer.js`: Upgraded critical 500-level error alert mailer with Resend + SMTP fallback so administrative panic alerts deliver reliably even if Resend is unconfigured.
+  5. `backend/.env` & `backend/.env.example`: Added detailed configuration instructions for Gmail App Passwords, Brevo/Sendinblue free relay, and custom SMTP. Added `https://applymatic.vercel.app` to allowed CORS origins in `FRONTEND_URL`.
+  6. `backend/tests/unit/services/notifications/emailTransport.test.js`: Added 17 unit tests covering configuration detection, Resend success, Resend error failover to SMTP, network timeout failover, direct SMTP, double-fail error handling, forced `EMAIL_PROVIDER` routing, and template helpers.
+  7. `backend/tests/unit/services/notifications/jobAlert.service.test.js`: Added unit tests verifying Resend failure fallback to Nodemailer SMTP.
+  8. `backend/src/utils/dateParser.js`: Created universal date parser extracting relative times (`"1 minute ago"`, `"15 mins ago"`, `"2 hours ago"`, `"yesterday"`, array extensions like Google Jobs `extensions`, and ISO dates) into accurate `Date` objects with `formatTimeAgo()` output.
+  9. `frontend/src/app/features/job-alerts/job-alerts.component.ts`: Added card-level `.meta-tag.date` badges with clock icon, 24-hour emerald `.fresh` highlighting, exact localized timestamp hover tooltips, detail panel header badges, and a `Last 1 Hour (<60m)` recency filter option. Sorted alerts by `postedAt` descending.
+  10. `frontend/src/app/features/jobs/jobs.component.ts`: Added `.posting-date-badge` with relative time, fresh styling, exact timestamp tooltips, detail modal timestamps, and `1h` recency filtering.
+  11. `backend/src/services/jobs/serpapi.scraper.js`: Connected `parseRelativeDate` to extract `job.extensions` and `detected_extensions.posted_at`; sorted Google Jobs by recency.
+  12. `backend/src/services/jobs/naukri.scraper.js` & `indeed.rss.scraper.js`: Integrated `parseRelativeDate` on snippet and date fields, sorting jobs newest first.
+  13. `backend/src/services/jobs/jobDiscovery.service.js`: Ordered discovered candidate jobs by `postedAt` descending prior to match scoring.
+  14. `backend/src/services/automation/jobAlertEngine.service.js`: Ensured `postedAt` defaults safely to `job.postedAt || new Date()` so alert records always contain valid dates.
+  15. `backend/src/models/JobApplication.js`: Added `postedAt: { type: Date, default: null }` schema property.
+  16. Database Backfill: Backfilled all pre-existing alerts in MongoDB Atlas to ensure 100% data integrity.
 - **Verification**:
   - `npx tsc --noEmit`: 0 errors.
   - Frontend test suite: 15/15 suites passed (93/93 tests).
-  - Backend test suite: 35/35 suites passed (331/331 tests).
-  - Live pipeline run: Discovered 130 jobs, successfully tailored and notified 8 jobs with tailored PDFs and prefill packets via WhatsApp, Email, and WebPush without server termination.
+  - Backend test suite: 36/36 suites passed (349/349 tests, 100% pass rate).
+  - Production build: clean exit code 0.
 
 ## Session 61 — AI Watermark Removal, Web Push, Multi-Platform Discovery & UI Sweeps (2026-09-27)
 - **Features & Fixes**:

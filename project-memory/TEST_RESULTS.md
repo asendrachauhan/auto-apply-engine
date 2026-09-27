@@ -1,7 +1,7 @@
 # TEST_RESULTS.md
 
 Status: **100% EXECUTED AND PASSING**
-Last verified: Session 61 (2026-09-27)
+Last verified: Session 62 (2026-09-28)
 
 All backend and frontend test suites have been executed directly via Node/Jest against the live codebase and achieve 100% pass rates.
 
@@ -9,7 +9,7 @@ All backend and frontend test suites have been executed directly via Node/Jest a
 
 | Area | Suites Passed / Total | Tests Passed / Total | Status |
 |---|---|---|---|
-| **Backend Unit & Integration Tests** | 35 / 35 | 331 / 331 | **100% PASS** |
+| **Backend Unit & Integration Tests** | 36 / 36 | 349 / 349 | **100% PASS** |
 | **Frontend Component & Service Tests** | 15 / 15 | 93 / 93 | **100% PASS** |
 | **Frontend TypeScript Check (`tsc --noEmit`)** | N/A | 0 errors | **PASS (Exit 0)** |
 | **Frontend Production Build (`ng build`)** | N/A | Output generated in `dist/autoapply-ai` | **PASS (Exit 0)** |
@@ -17,10 +17,12 @@ All backend and frontend test suites have been executed directly via Node/Jest a
 
 ---
 
-## Backend Test Suites (35 Suites, 331 Tests — 100% PASS)
+## Backend Test Suites (36 Suites, 349 Tests — 100% PASS)
 
 | Suite | File | Tests | Status |
 |---|---|---|---|
+| Email Transport & SMTP Fallback | `tests/unit/services/notifications/emailTransport.test.js` | 17 | PASS |
+| Job Alert Notification Service | `tests/unit/services/notifications/jobAlert.service.test.js` | 11 | PASS |
 | AI Humanizer & Anti-Detection | `tests/unit/services/ai/aiHumanizer.service.test.js` | 7 | PASS |
 | Apify Cloud Job Scraper | `tests/unit/services/jobs/apify.scraper.test.js` | 9 | PASS |
 | Auth Controller | `tests/unit/controllers/auth.controller.test.js` | 30 | PASS |
@@ -41,7 +43,6 @@ All backend and frontend test suites have been executed directly via Node/Jest a
 | Automation Scheduler Service | `tests/unit/services/automation/scheduler.service.test.js` | 7 | PASS |
 | Realtime Job Watcher Service | `tests/unit/services/realtime/jobWatcher.service.test.js` | 6 | PASS |
 | Notification Service | `tests/unit/services/notifications/notification.service.test.js` | 6 | PASS |
-| Job Alert Notification Service | `tests/unit/services/notifications/jobAlert.service.test.js` | 10 | PASS |
 | PDF Generator & Tailored Resume Service | `tests/unit/services/resume/pdfGenerator.service.test.js` | 9 | PASS |
 | Audit Log Service | `tests/unit/services/audit/auditLog.service.test.js` | 5 | PASS |
 | India to Europe Intelligence | `tests/unit/services/intelligence/indiaToEurope.service.test.js` | 10 | PASS |

@@ -4,21 +4,11 @@
  * Email template uses the unified AutoApply AI design system.
  */
 'use strict';
-const { Resend } = require('resend');
 const twilio     = require('twilio');
 const logger     = require('../../utils/logger');
 const { jobAlertEmail } = require('../../utils/emailTemplates');
+const { sendWithFallback } = require('./emailTransport');
 
-/* ─── Resend ──────────────────────────────────────────────────────────────── */
-let _emailClient = null;
-const getEmailClient = () => {
-  if (_emailClient) return _emailClient;
-  if (!process.env.RESEND_API_KEY) return null;
-  _emailClient = new Resend(process.env.RESEND_API_KEY);
-  return _emailClient;
-};
-
-const FROM = process.env.RESEND_FROM_EMAIL || 'AutoApply AI <onboarding@resend.dev>';
 
 /* ─── Twilio WhatsApp ─────────────────────────────────────────────────────── */
 let _waClient = null;
@@ -74,15 +64,14 @@ const sendWhatsAppAlert = async (phoneNumber, alert) => {
 
 /* ─── Email alert ─────────────────────────────────────────────────────────── */
 const sendEmailAlert = async (emailAddress, alert, prefillCard) => {
-  const client = getEmailClient();
-  if (!client || !emailAddress) return false;
+  if (!emailAddress) return false;
 
   const { subject, html } = jobAlertEmail({ emailAddress, alert, prefillCard });
 
   try {
-    const { data, error } = await client.emails.send({ from: FROM, to: emailAddress, subject, html });
-    if (error) throw new Error(error.message ?? JSON.stringify(error));
-    logger.info(`[JobAlert] Email sent → ${emailAddress}: ${alert.title} [id:${data?.id}]`);
+    const result = await sendWithFallback({ to: emailAddress, subject, html });
+    if (!result) return false;
+    logger.info(`[JobAlert] Email sent → ${emailAddress}: ${alert.title} [id:${result.id}]`);
     return true;
   } catch (err) {
     logger.error(`[JobAlert] Email failed: ${err.message}`);

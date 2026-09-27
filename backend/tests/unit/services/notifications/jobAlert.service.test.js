@@ -9,6 +9,13 @@ jest.mock('resend', () => ({
   })),
 }));
 
+const mockNodemailerSendMail = jest.fn();
+jest.mock('nodemailer', () => ({
+  createTransport: jest.fn().mockImplementation(() => ({
+    sendMail: mockNodemailerSendMail,
+  })),
+}));
+
 const mockTwilioCreate = jest.fn();
 jest.mock('twilio', () => {
   return jest.fn().mockImplementation(() => ({
@@ -87,6 +94,26 @@ describe('jobAlert.service', () => {
       const result = await jobAlertService.sendEmailAlert('', sampleAlert);
       expect(result).toBe(false);
       expect(mockResendSend).not.toHaveBeenCalled();
+    });
+
+    test('falls back to SMTP when Resend fails and SMTP is configured', async () => {
+      process.env.SMTP_HOST = 'smtp.gmail.com';
+      process.env.SMTP_USER = 'user@gmail.com';
+      process.env.SMTP_PASS = 'pass123';
+      mockResendSend.mockRejectedValue(new Error('Resend rate limit exceeded'));
+      mockNodemailerSendMail.mockResolvedValue({ messageId: 'smtp-job-alert-fallback' });
+
+      const result = await jobAlertService.sendEmailAlert('candidate@example.com', sampleAlert);
+      expect(result).toBe(true);
+      expect(mockResendSend).toHaveBeenCalledTimes(1);
+      expect(mockNodemailerSendMail).toHaveBeenCalledTimes(1);
+      expect(mockNodemailerSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'candidate@example.com',
+          subject: expect.stringMatching(/88%\s*match/i),
+          html: expect.stringContaining('Senior Frontend Developer'),
+        })
+      );
     });
   });
 
