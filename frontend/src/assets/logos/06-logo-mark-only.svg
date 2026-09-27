@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 24 260 156" width="260" height="156" role="img" aria-label="AutoApply AI mark">
+
+  <defs>
+    <linearGradient id="cyanBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22E6F2"/>
+      <stop offset="48%" stop-color="#087CF5"/>
+      <stop offset="100%" stop-color="#3157FF"/>
+    </linearGradient>
+    <linearGradient id="bluePurple" x1="15%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#167BFF"/>
+      <stop offset="55%" stop-color="#4A3BFF"/>
+      <stop offset="100%" stop-color="#D43DFF"/>
+    </linearGradient>
+    <linearGradient id="orbit" x1="0%" y1="30%" x2="100%" y2="70%">
+      <stop offset="0%" stop-color="#17DDF2"/>
+      <stop offset="50%" stop-color="#35CFFF"/>
+      <stop offset="100%" stop-color="#66F2FF"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M34 174 L91 58 C101 38 119 28 140 28 H158 C180 28 198 40 207 60 L260 174 H211 L170 88 C166 79 159 74 149 74 H145 C136 74 128 80 124 89 L83 174 Z" fill="url(#cyanBlue)"/>
+  <path d="M153 74 C162 74 169 79 174 89 L211 174 H260 L207 60 C198 40 180 28 158 28 H148 Z" fill="url(#bluePurple)" opacity=".9"/>
+  <path d="M96 160 L137 86 C142 77 151 73 160 77 L180 116 L151 163 Z" fill="#071433" opacity=".9"/>
+  <path d="M29 127 C77 166 178 160 226 108 C240 93 245 79 241 67" fill="none" stroke="url(#orbit)" stroke-width="18" stroke-linecap="round"/>
+  <path d="M230 49 L274 34 L254 75 Z" fill="#21E5F4"/>
+  <path d="M230 49 L274 34 L250 57 Z" fill="#0D79FF"/>
+</svg>

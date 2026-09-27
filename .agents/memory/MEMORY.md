@@ -1,0 +1,1 @@
+- [Running MongoDB apps on Replit](mongodb-on-replit.md) — no MongoDB integration exists; install via nix and run mongod as a workflow instead of requiring Atlas.

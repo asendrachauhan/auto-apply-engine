@@ -1,0 +1,77 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Frontend Dev Server",
+      "type": "shell",
+      "command": "npx ng serve --port 4200",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": {
+          "regexp": "^([^\\s].*):(\\d+):(\\d+) - (error|warning) TS(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "code": 5,
+          "message": 6
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Building...",
+          "endsPattern": "Application bundle generation complete."
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Run Frontend Tests",
+      "type": "shell",
+      "command": "npm test -- --no-coverage --forceExit",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run Backend Tests",
+      "type": "shell",
+      "command": "npm test -- --no-coverage --forceExit",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Check Frontend TypeScript Compiler",
+      "type": "shell",
+      "command": "npx tsc --noEmit",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Build Frontend Production",
+      "type": "shell",
+      "command": "npx ng build --configuration production",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": "build"
+    }
+  ]
+}

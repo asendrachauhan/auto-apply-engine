@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "msedge",
+      "request": "launch",
+      "name": "Launch Edge against localhost",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/frontend/src"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Backend Server",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/backend/src/server.js",
+      "cwd": "${workspaceFolder}/backend"
+    }
+  ]
+}
