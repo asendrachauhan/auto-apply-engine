@@ -108,69 +108,137 @@ const parseNaukriOrganicResult = (item, defaultKeyword = '', defaultLocation = '
 /**
  * Scrape Naukri jobs for a given keyword and location.
  * @param {string} keyword - job title or search term
- * @param {string} location - city or country
+ * @param {string|number} location - city or country (or limit if passed as 2nd arg)
  * @param {number} limit
  * @returns {Promise<object[]>}
  */
 const scrapeNaukri = async (keyword = 'software developer', location = 'India', limit = 25) => {
+  // Defensive argument normalization (e.g. if called as scrapeNaukri('developer', 50))
+  let effectiveLocation = location;
+  let effectiveLimit = limit;
+  if (typeof location === 'number') {
+    effectiveLimit = location;
+    effectiveLocation = 'India';
+  }
+  if (!effectiveLocation || typeof effectiveLocation !== 'string') {
+    effectiveLocation = 'India';
+  }
+
   const apiKey = process.env.SERPAPI_KEY;
   if (!apiKey) {
     logger.warn('[Naukri] SERPAPI_KEY not set — skipping Naukri search');
     return [];
   }
 
-  const cacheKey = `naukri::${keyword}::${location}`.toLowerCase().trim();
+  const cleanKeyword = (keyword || 'software developer').trim();
+  const cleanLoc = (effectiveLocation || 'India').trim();
+  const cacheKey = `naukri::${cleanKeyword}::${cleanLoc}`.toLowerCase().trim();
 
   try {
     const cached = await SerpApiCache.findOne({ cacheKey }).lean();
     if (cached && (Date.now() - new Date(cached.fetchedAt).getTime()) < getCacheTtlMs()) {
-      logger.debug(`[Naukri] Cache hit for "${keyword}" in "${location}" (${cached.jobs.length} jobs)`);
-      return cached.jobs.slice(0, limit);
+      logger.debug(`[Naukri] Cache hit for "${cleanKeyword}" in "${cleanLoc}" (${cached.jobs.length} jobs)`);
+      return cached.jobs.slice(0, effectiveLimit);
     }
   } catch (cacheErr) {
     logger.warn(`[Naukri] Cache read error: ${cacheErr.message}`);
   }
 
-  logger.info(`[Naukri] Searching live jobs for "${keyword}" in "${location}" via SerpAPI`);
+  logger.info(`[Naukri] Searching live jobs for "${cleanKeyword}" in "${cleanLoc}" via SerpAPI`);
+
+  const collectedJobs = [];
+  const seenUrls = new Set();
 
   try {
-    const query = `site:naukri.com/job-listings "${keyword}" ${location}`;
-    const res = await axios.get('https://serpapi.com/search', {
+    // 1. Google Organic search targeting Naukri job listings (unquoted for broad keyword coverage)
+    const organicQuery = `site:naukri.com/job-listings ${cleanKeyword} ${cleanLoc}`;
+    const organicRes = await axios.get('https://serpapi.com/search', {
       params: {
         engine: 'google',
-        q: query,
+        q: organicQuery,
         api_key: apiKey,
         hl: 'en',
         gl: 'in',
-        tbs: 'qdr:m', // Only fetch jobs indexed in the past month (avoids stale/expired jobs)
-        num: Math.min(20, Math.max(10, limit)),
+        num: Math.min(20, Math.max(10, effectiveLimit)),
       },
       timeout: TIMEOUT,
     });
 
-    const organic = res.data?.organic_results || [];
-    const jobs = organic
-      .filter(item => item.link && item.link.includes('naukri.com/job-listings'))
-      .map(item => parseNaukriOrganicResult(item, keyword, location))
-      .filter(Boolean)
-      .sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
-
-    logger.info(`[Naukri] Found ${jobs.length} jobs for "${keyword}"`);
-
-    // Cache the results
-    if (jobs.length > 0) {
-      SerpApiCache.findOneAndUpdate(
-        { cacheKey },
-        { cacheKey, jobs, fetchedAt: new Date() },
-        { upsert: true, new: true }
-      ).catch(e => logger.warn(`[Naukri] Cache write failed: ${e.message}`));
+    const organic = organicRes.data?.organic_results || [];
+    for (const item of organic) {
+      if (item.link && item.link.includes('naukri.com')) {
+        const parsed = parseNaukriOrganicResult(item, cleanKeyword, cleanLoc);
+        if (parsed && parsed.url && !seenUrls.has(parsed.url)) {
+          seenUrls.add(parsed.url);
+          collectedJobs.push(parsed);
+        }
+      }
     }
-
-    return jobs.slice(0, limit);
-  } catch (err) {
-    logger.warn(`[Naukri] Scrape failed for "${keyword}": ${err.message}`);
-    return [];
+  } catch (organicErr) {
+    logger.warn(`[Naukri] Organic search failed for "${cleanKeyword}": ${organicErr.message}`);
   }
+
+  // 2. Dual-source fallback: If organic returned fewer than 5 jobs, search Google Jobs with "Naukri"
+  if (collectedJobs.length < 5) {
+    try {
+      const gjRes = await axios.get('https://serpapi.com/search', {
+        params: {
+          engine: 'google_jobs',
+          q: `${cleanKeyword} Naukri`,
+          location: cleanLoc,
+          api_key: apiKey,
+          hl: 'en',
+          gl: 'in',
+        },
+        timeout: TIMEOUT,
+      });
+
+      const gjResults = gjRes.data?.jobs_results || [];
+      for (const j of gjResults) {
+        const naukriOpt = (j.apply_options || []).find(o => /naukri/i.test(o.title || '') || /naukri/i.test(o.link || ''));
+        const directUrl = unwrapGoogleUrl(naukriOpt?.link || j.apply_options?.[0]?.link || j.related_links?.[0]?.link || j.share_link || '');
+        if (directUrl && !seenUrls.has(directUrl)) {
+          seenUrls.add(directUrl);
+          collectedJobs.push({
+            source:         'naukri',
+            sourcePlatform: 'naukri',
+            platform:       'Naukri',
+            externalId:     j.job_id || `naukri-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            title:          j.title || cleanKeyword,
+            company:        j.company_name || 'Naukri Employer',
+            location:       j.location || cleanLoc,
+            description:    (j.description || '').slice(0, 4000),
+            url:            directUrl,
+            salary:         j.detected_extensions?.salary || '',
+            remote:         Boolean(j.detected_extensions?.work_from_home || /remote/i.test(j.title || '')),
+            jobType:        j.detected_extensions?.schedule_type || 'Full-time',
+            postedAt:       parseRelativeDate(j.extensions || j.detected_extensions?.posted_at),
+            skills:         [],
+            applyLinks:     j.apply_options?.map(o => ({ platform: o.title, url: unwrapGoogleUrl(o.link) })) || [],
+          });
+        }
+      }
+    } catch (gjErr) {
+      logger.warn(`[Naukri] Google Jobs fallback failed for "${cleanKeyword}": ${gjErr.message}`);
+    }
+  }
+
+  const jobs = collectedJobs
+    .filter(j => j.title && j.url)
+    .sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
+
+  logger.info(`[Naukri] Total found ${jobs.length} jobs for "${cleanKeyword}" in "${cleanLoc}"`);
+
+  // Cache the results
+  if (jobs.length > 0) {
+    SerpApiCache.findOneAndUpdate(
+      { cacheKey },
+      { cacheKey, jobs, fetchedAt: new Date() },
+      { upsert: true, new: true }
+    ).catch(e => logger.warn(`[Naukri] Cache write failed: ${e.message}`));
+  }
+
+  return jobs.slice(0, effectiveLimit);
 };
 
 module.exports = { scrapeNaukri };

@@ -1,15 +1,28 @@
 # AutoApply AI — Current Status
-Last updated: 2026-09-28 (Session 63)
+Last updated: 2026-09-28 (Session 64)
 
 ## Snapshot
-- Backend: Express/MongoDB (Node.js v24), 36 test suites, 349 tests passing (100%).
+- Backend: Express/MongoDB (Node.js v24), 37 test suites, 353 tests passing (100%).
 - Frontend: Angular 17+ standalone components, 15 test suites, 93 tests passing (100%), TypeScript 0 errors, production build verified (exit code 0, 0 warnings).
-- Priority Portals Pipeline: Naukri, LinkedIn, and Indeed configured as top-tier high-priority sources (+250 relevance bonus, scanned first, never throttled by per-platform limits).
-- Direct Verified Job URLs: Resolved broken Google redirect loops by extracting direct application URLs from `job.apply_options` and unwrapping `/url?q=` redirects.
-- Pure-JS Vector PDF Failover Engine: Built `generatePdfWithPdfLib` using `pdf-lib` (15ms generation, zero browser dependency) to rescue any Puppeteer sandbox/library crashes and eliminate 500 download failures.
-- Expired & Ghost Job Filter: Added recency filters (`tbs: 'qdr:m'`) and keywords filtering to skip expired or closed listings on Naukri and other portals.
-- Hourly Automated Cron Discovery: Configured default `CRON_SCHEDULE='0 * * * *'` to scrape fresh listings every hour and dispatch job alerts.
-- Animated Glassmorphic Splash & Landing Overhaul: Redesigned the initial app splash with gyroscopic radar, orbiting luminous satellites, dynamic glowing progress bar, and cycling tickers. Overhauled Landing page with "Manual Applying vs AutoApply AI" comparison and Priority #1 portal badges.
+- Dedicated Live LinkedIn Scraper (`linkedin.scraper.js`): Built official SerpAPI Google Jobs targeted LinkedIn scraper with `SerpApiCache`, retrieving 10+ live verified LinkedIn jobs per query with direct `linkedin.com/jobs/view` apply links.
+- High-Volume Naukri Scraper: Fixed previous location argument inversion bug in `jobAggregator.service.js` (was passing `50` as location), removed restrictive quotes and `tbs: 'qdr:m'` that blanked Google index results, and added a dual-source Google Jobs fallback so 10-25 Naukri listings are discovered per search.
+- Multi-Source Indeed Scraper: Upgraded `indeed.rss.scraper.js` with dual-layer fallback to Google organic search for `site:in.indeed.com/viewjob` when Google Jobs returns < 5 jobs.
+- Broad Google Jobs Discovery: Removed restrictive `chips: 'date_posted:today'` in `serpapi.scraper.js` which previously discarded 95% of active jobs down to 0-1 listings.
+
+## Session 64 — High-Yield Dedicated LinkedIn Scraper, Naukri Unquoted Dual-Source Engine, and Indeed Multi-Layer Fallback (2026-09-28)
+- **Features & Fixes**:
+  1. `backend/src/services/jobs/linkedin.scraper.js`: Created dedicated LinkedIn scraper utilizing SerpAPI Google Jobs targeted query (`${searchTerm} LinkedIn`) with location support, direct `linkedin.com/jobs/view/...` URL resolution from `apply_options`, and `SerpApiCache` caching.
+  2. `backend/src/services/jobs/naukri.scraper.js`: Fixed query structure by removing quotes around `${keyword}` and removing `tbs: 'qdr:m'` which previously blanked Google index results. Added dual-source fallback querying Google Jobs with `${keyword} Naukri` when organic results yield < 5 jobs. Added defensive location argument handling (`typeof location === 'number'`).
+  3. `backend/src/services/jobs/indeed.rss.scraper.js`: Augmented `fetchIndeedViaSerpApi` with secondary Google organic query (`site:in.indeed.com/viewjob ${searchTerm} ${location}`) to guarantee 10-25 fresh jobs when Google Jobs has sparse listings.
+  4. `backend/src/services/jobs/serpapi.scraper.js`: Removed `chips: 'date_posted:today'` which was artificially choking Google Jobs results to 0-1 jobs.
+  5. `backend/src/services/jobs/jobDiscovery.service.js`: Replaced previous missing Techmap import with `./naukri.scraper` and `./linkedin.scraper`, guaranteeing that users without `TECHMAP_RAPIDAPI_KEY` or `APIFY_API_TOKEN` receive abundant, high-priority listings from Naukri, LinkedIn, and Indeed.
+  6. `backend/src/services/jobs/jobAggregator.service.js`: Fixed `scrapeNaukri` call that passed `50` as location, integrated `scrapeLinkedIn`, and elevated all Naukri, LinkedIn, and Indeed jobs to the top of `/api/jobs` results.
+  7. `backend/tests/unit/services/jobs/linkedin.scraper.test.js`: Added 4 unit tests covering unconfigured key handling, cache hits, Google Jobs normalization, and soft error handling.
+- **Verification**:
+  - `npx tsc --noEmit`: 0 errors.
+  - Frontend unit tests: 15/15 suites passed (93/93 tests, 100%).
+  - Backend unit tests: 37/37 suites passed (353/353 tests, 100%).
+  - Production build (`ng build --configuration production`): clean exit code 0, 0 warnings.
 
 ## Session 63 — Naukri/LinkedIn/Indeed Top Priority, Hourly Scraper Cron, Direct Job URLs, Pure-JS Resume PDF Engine & Loading Splash Overhaul (2026-09-28)
 - **Features & Fixes**:

@@ -153,7 +153,7 @@ const scrapeGoogleJobs = async (searchTerm = 'professional', location = 'India')
       engine:  'google_jobs',
       q:       query,
       hl:      'en',
-      chips:   'date_posted:today', // only today's jobs
+      gl:      'in',
     };
     if (!isRemoteOnly && location) {
       params.location = location;

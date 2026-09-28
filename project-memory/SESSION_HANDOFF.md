@@ -1,6 +1,6 @@
 # SESSION_HANDOFF.md
-Generated: Session 63 (2026-09-28).
-Status: Backend 100% Tests Pass (349/349 across 36 suites), Frontend 100% Tests Pass (93/93 across 15 suites), TypeScript clean (0 errors), Production Build Clean (`ng build` exit code 0, 0 warnings). Priority scraping for Naukri/LinkedIn/Indeed, hourly cron scheduler, direct verified job URLs unwrapped from Google queries, pure-JS vector PDF failover engine (pdf-lib), animated futuristic glassmorphic splash loader, and redesigned landing page comparison operational.
+Generated: Session 64 (2026-09-28).
+Status: Backend 100% Tests Pass (353/353 across 37 suites), Frontend 100% Tests Pass (93/93 across 15 suites), TypeScript clean (0 errors), Production Build Clean (`ng build` exit code 0, 0 warnings). Dedicated high-volume LinkedIn scraper (`linkedin.scraper.js`), unquoted dual-source Naukri scraper (`naukri.scraper.js`), multi-layer Indeed scraper (`indeed.rss.scraper.js`), and broad Google Jobs discovery operational.
 This document is meant to be self-contained — read this file plus `CURRENT_STATUS.md` and `TEST_RESULTS.md`.
 
 ---

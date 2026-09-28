@@ -40,7 +40,9 @@ const { scrapeJobicy }      = require('./jobicy.scraper');
 const { scrapeAdzuna }      = require('./adzuna.scraper');
 const { scrapeArbeitnow }   = require('./arbeitnow.scraper');
 const { scrapeIndeed }      = require('./indeed.rss.scraper');
-const { scrapeLinkedIn, scrapeNaukri } = require('./techmap.scraper');
+const { scrapeNaukri }      = require('./naukri.scraper');
+const { scrapeLinkedIn }    = require('./linkedin.scraper');
+const { scrapeLinkedIn: scrapeLinkedInTechmap, scrapeNaukri: scrapeNaukriTechmap } = require('./techmap.scraper');
 const { scrapeLinkedInApify, scrapeNaukriApify, scrapeIndeedApify } = require('./apify.scraper');
 const { scrapeGoogleJobs }  = require('./serpapi.scraper');
 const { filterGhostJobs }   = require('../intelligence/ghostJob.service');
@@ -142,20 +144,24 @@ const discoverJobs = async (user) => {
   // Run all scrapers concurrently — high-priority portals (Naukri, LinkedIn, Indeed) first
   const [
     naukriJobs,
-    apifyNaukriJobs,
     linkedinJobs,
-    apifyLinkedinJobs,
     indeedJobs,
+    techmapNaukriJobs,
+    techmapLinkedinJobs,
+    apifyNaukriJobs,
+    apifyLinkedinJobs,
     apifyIndeedJobs,
     adzunaJobs,
     ...googleJobsResults
   ] = await Promise.allSettled([
-    allowedSources.has('naukri')     ? scrapeNaukri(primaryTitle, primaryLocation) : Promise.resolve([]),
-    allowedSources.has('naukri')     ? scrapeNaukriApify(primaryTitle, primaryLocation) : Promise.resolve([]),
-    allowedSources.has('linkedin')   ? scrapeLinkedIn(primaryTitle, primaryLocation) : Promise.resolve([]),
-    allowedSources.has('linkedin')   ? scrapeLinkedInApify(primaryTitle, primaryLocation) : Promise.resolve([]),
-    scrapeIndeed(primaryTitle, primaryLocation),
-    allowedSources.has('indeed')     ? scrapeIndeedApify(primaryTitle, primaryLocation) : Promise.resolve([]),
+    allowedSources.has('naukri')     ? scrapeNaukri(primaryTitle, primaryLocation, 25) : Promise.resolve([]),
+    allowedSources.has('linkedin')   ? scrapeLinkedIn(primaryTitle, primaryLocation, 25) : Promise.resolve([]),
+    scrapeIndeed(primaryTitle, primaryLocation, 25),
+    (allowedSources.has('naukri') && process.env.TECHMAP_RAPIDAPI_KEY) ? scrapeNaukriTechmap(primaryTitle, primaryLocation) : Promise.resolve([]),
+    (allowedSources.has('linkedin') && process.env.TECHMAP_RAPIDAPI_KEY) ? scrapeLinkedInTechmap(primaryTitle, primaryLocation) : Promise.resolve([]),
+    (allowedSources.has('naukri') && process.env.APIFY_API_TOKEN) ? scrapeNaukriApify(primaryTitle, primaryLocation) : Promise.resolve([]),
+    (allowedSources.has('linkedin') && process.env.APIFY_API_TOKEN) ? scrapeLinkedInApify(primaryTitle, primaryLocation) : Promise.resolve([]),
+    (allowedSources.has('indeed') && process.env.APIFY_API_TOKEN) ? scrapeIndeedApify(primaryTitle, primaryLocation) : Promise.resolve([]),
     allowedSources.has('adzuna')     ? scrapeAdzuna(primaryTitle, primaryLocation) : Promise.resolve([]),
     ...googleJobsTitles.map(title => scrapeGoogleJobs(title, primaryLocation)),
   ]);
@@ -177,18 +183,25 @@ const discoverJobs = async (user) => {
     .filter(r => r.status === 'fulfilled')
     .flatMap(r => r.value);
 
+  // Extract any Google Jobs matching top platforms into high priority pool as well
+  const googleTopJobs = googleJobs.filter(j => ['naukri', 'linkedin', 'indeed'].includes(j.sourcePlatform));
+  const otherGoogleJobs = googleJobs.filter(j => !['naukri', 'linkedin', 'indeed'].includes(j.sourcePlatform));
+
   // High priority: Naukri, LinkedIn, Indeed first
   const highPriorityJobs = [
-    ...(naukriJobs.status        === 'fulfilled' ? naukriJobs.value        : []),
-    ...(apifyNaukriJobs.status   === 'fulfilled' ? apifyNaukriJobs.value   : []),
-    ...(linkedinJobs.status      === 'fulfilled' ? linkedinJobs.value      : []),
-    ...(apifyLinkedinJobs.status === 'fulfilled' ? apifyLinkedinJobs.value : []),
-    ...(indeedJobs.status        === 'fulfilled' ? indeedJobs.value        : []),
-    ...(apifyIndeedJobs.status   === 'fulfilled' ? apifyIndeedJobs.value   : []),
+    ...(naukriJobs.status          === 'fulfilled' ? naukriJobs.value          : []),
+    ...(linkedinJobs.status        === 'fulfilled' ? linkedinJobs.value        : []),
+    ...(indeedJobs.status          === 'fulfilled' ? indeedJobs.value          : []),
+    ...googleTopJobs,
+    ...(techmapNaukriJobs.status   === 'fulfilled' ? techmapNaukriJobs.value   : []),
+    ...(techmapLinkedinJobs.status === 'fulfilled' ? techmapLinkedinJobs.value : []),
+    ...(apifyNaukriJobs.status     === 'fulfilled' ? apifyNaukriJobs.value     : []),
+    ...(apifyLinkedinJobs.status   === 'fulfilled' ? apifyLinkedinJobs.value   : []),
+    ...(apifyIndeedJobs.status     === 'fulfilled' ? apifyIndeedJobs.value     : []),
   ];
 
   const secondaryJobs = [
-    ...googleJobs,
+    ...otherGoogleJobs,
     ...(adzunaJobs.status        === 'fulfilled' ? adzunaJobs.value        : []),
     ...(himalayasJobs.status     === 'fulfilled' ? himalayasJobs.value     : []),
     ...(remotiveJobs.status      === 'fulfilled' ? remotiveJobs.value      : []),
@@ -198,10 +211,11 @@ const discoverJobs = async (user) => {
 
   const allJobs = [...highPriorityJobs, ...secondaryJobs].filter(j => j.title && j.url);
 
-  const googleLinkedinCount = googleJobs.filter(j => j.sourcePlatform === 'linkedin').length;
-  const googleNaukriCount   = googleJobs.filter(j => j.sourcePlatform === 'naukri').length;
-  logger.info(`[JobDiscovery] Priority jobs fetched: ${highPriorityJobs.length} (Naukri, LinkedIn, Indeed), ${secondaryJobs.length} from secondary aggregators`);
-  logger.info(`[JobDiscovery] Google Jobs: ${googleJobs.length} total (${googleLinkedinCount} via LinkedIn, ${googleNaukriCount} via Naukri) across ${googleJobsTitles.length} title queries`);
+  const totalLinkedin = allJobs.filter(j => j.sourcePlatform === 'linkedin' || j.source === 'linkedin').length;
+  const totalNaukri   = allJobs.filter(j => j.sourcePlatform === 'naukri' || j.source === 'naukri').length;
+  const totalIndeed   = allJobs.filter(j => j.sourcePlatform === 'indeed' || j.source === 'indeed').length;
+
+  logger.info(`[JobDiscovery] Priority jobs fetched: ${highPriorityJobs.length} (Naukri: ${totalNaukri}, LinkedIn: ${totalLinkedin}, Indeed: ${totalIndeed}), ${secondaryJobs.length} secondary`);
   logger.info(`[JobDiscovery] Raw: ${allJobs.length} jobs from all sources`);
 
   // Ghost-job filter — same differentiator used by the auto-apply pipeline.

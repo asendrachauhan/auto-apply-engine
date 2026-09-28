@@ -26,6 +26,7 @@ const { scrapeArbeitnow }  = require('./arbeitnow.scraper');
 const { scrapeJobicy }     = require('./jobicy.scraper');
 const { scrapeIndeed }     = require('./indeed.rss.scraper');
 const { scrapeNaukri }     = require('./naukri.scraper');
+const { scrapeLinkedIn }   = require('./linkedin.scraper');
 const { scrapeGoogleJobs } = require('./serpapi.scraper');
 const { scrapeLinkedInApify, scrapeNaukriApify, scrapeIndeedApify } = require('./apify.scraper');
 const { filterGhostJobs }  = require('../intelligence/ghostJob.service');
@@ -101,35 +102,38 @@ const aggregateJobs = async (preferences = {}, options = {}) => {
     tasks.push(Promise.resolve([]));
   }
 
-  // 6. Indeed RSS — always on, India-first
+  // 6. Indeed — always on, India-first
   // Location derived from user preference or defaults to 'India' for Indian candidates
   const indeedLocation = primaryLoc || (remoteOnly ? '' : 'India');
   tasks.push(scrapeIndeed(primaryTerm, indeedLocation, 'in'));
 
-  // 7. Naukri RSS — always on, India-first
-  tasks.push(scrapeNaukri(primaryTerm, 50));
+  // 7. Naukri — always on, India-first
+  tasks.push(scrapeNaukri(primaryTerm, indeedLocation, 30));
 
-  // 8. Google Jobs via SerpAPI — optional, requires SERPAPI_KEY
+  // 8. LinkedIn — dedicated scraper via SerpAPI, always on
+  tasks.push(scrapeLinkedIn(primaryTerm, indeedLocation, 30));
+
+  // 9. Google Jobs via SerpAPI — optional, requires SERPAPI_KEY
   // Aggregates LinkedIn, Glassdoor, Naukri, Indeed, and 100+ boards in one call.
   // When SERPAPI_KEY is not set, scrapeGoogleJobs() returns [] gracefully.
   const serpLocation = primaryLoc || (remoteOnly ? 'Remote' : 'India');
   tasks.push(scrapeGoogleJobs(primaryTerm, serpLocation));
 
-  // 9. Apify LinkedIn — plan-gated & requires APIFY_API_TOKEN
+  // 10. Apify LinkedIn — plan-gated & requires APIFY_API_TOKEN
   if (allowedSources.has('linkedin') && process.env.APIFY_API_TOKEN) {
     tasks.push(scrapeLinkedInApify(primaryTerm, serpLocation));
   } else {
     tasks.push(Promise.resolve([]));
   }
 
-  // 10. Apify Naukri — plan-gated & requires APIFY_API_TOKEN
+  // 11. Apify Naukri — plan-gated & requires APIFY_API_TOKEN
   if (allowedSources.has('naukri') && process.env.APIFY_API_TOKEN) {
     tasks.push(scrapeNaukriApify(primaryTerm, serpLocation));
   } else {
     tasks.push(Promise.resolve([]));
   }
 
-  // 11. Apify Indeed — plan-gated & requires APIFY_API_TOKEN
+  // 12. Apify Indeed — plan-gated & requires APIFY_API_TOKEN
   if (allowedSources.has('indeed') && process.env.APIFY_API_TOKEN) {
     tasks.push(scrapeIndeedApify(primaryTerm, serpLocation));
   } else {
@@ -140,19 +144,24 @@ const aggregateJobs = async (preferences = {}, options = {}) => {
   const [
     remotiveJobs, himalayasJobs, jobicyJobs,
     adzunaJobs, arbeitnowJobs,
-    indeedJobs, naukriJobs, googleJobs,
+    indeedJobs, naukriJobs, linkedinJobs, googleJobs,
     apifyLinkedinJobs, apifyNaukriJobs, apifyIndeedJobs,
   ] = results.map(r => (r.status === 'fulfilled' ? r.value : []));
+
+  const googleTopJobs = googleJobs.filter(j => ['naukri', 'linkedin', 'indeed'].includes(j.sourcePlatform));
+  const otherGoogleJobs = googleJobs.filter(j => !['naukri', 'linkedin', 'indeed'].includes(j.sourcePlatform));
 
   const rawJobs = [
     // Top Priority: Naukri, LinkedIn, Indeed
     ...naukriJobs,
+    ...linkedinJobs,
+    ...indeedJobs,
+    ...googleTopJobs,
     ...apifyNaukriJobs,
     ...apifyLinkedinJobs,
-    ...indeedJobs,
     ...apifyIndeedJobs,
     // Secondary portals & aggregators
-    ...googleJobs,
+    ...otherGoogleJobs,
     ...adzunaJobs,
     ...himalayasJobs,
     ...remotiveJobs,
@@ -160,7 +169,11 @@ const aggregateJobs = async (preferences = {}, options = {}) => {
     ...arbeitnowJobs,
   ].filter(j => j.title && j.url);
 
-  logger.info(`Total raw jobs fetched: ${rawJobs.length} (naukri:${naukriJobs.length + apifyNaukriJobs.length} linkedin:${apifyLinkedinJobs.length} indeed:${indeedJobs.length + apifyIndeedJobs.length} google:${googleJobs.length} adzuna:${adzunaJobs.length} remotive:${remotiveJobs.length})`);
+  const totalNaukri = rawJobs.filter(j => j.sourcePlatform === 'naukri' || j.source === 'naukri').length;
+  const totalLinkedin = rawJobs.filter(j => j.sourcePlatform === 'linkedin' || j.source === 'linkedin').length;
+  const totalIndeed = rawJobs.filter(j => j.sourcePlatform === 'indeed' || j.source === 'indeed').length;
+
+  logger.info(`Total raw jobs fetched: ${rawJobs.length} (naukri:${totalNaukri} linkedin:${totalLinkedin} indeed:${totalIndeed} google:${googleJobs.length} adzuna:${adzunaJobs.length} remotive:${remotiveJobs.length})`);
 
   // Ghost-job filter
   const minGhostScore = Number.isFinite(preferences?.ghostScoreMinimum)

@@ -119,6 +119,7 @@ const fetchIndeedViaSerpApi = async (searchTerm, location, limit = 25) => {
       return {
         source:         'indeed',
         sourcePlatform: 'indeed',
+        platform:       'Indeed',
         externalId:     j.job_id || `indeed-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         title:          j.title || '',
         company:        j.company_name || 'Indeed Employer',
@@ -130,22 +131,69 @@ const fetchIndeedViaSerpApi = async (searchTerm, location, limit = 25) => {
         jobType:        j.detected_extensions?.schedule_type || 'Full-time',
         postedAt:       parseRelativeDate(j.extensions || j.detected_extensions?.posted_at),
         skills:         [],
-        applyLinks:     j.apply_options?.map(o => ({ platform: o.title, url: o.link })) || [],
+        applyLinks:     j.apply_options?.map(o => ({ platform: o.title, url: unwrapGoogleUrl(o.link) })) || [],
       };
-    }).filter(j => j.title && j.url)
-      .sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
+    }).filter(j => j.title && j.url);
 
-    logger.info(`[Indeed] Found ${jobs.length} jobs via SerpAPI`);
+    // If Google Jobs yielded fewer than 5 results, augment with Google Organic search for Indeed India
+    if (jobs.length < 5) {
+      try {
+        const orgRes = await axios.get('https://serpapi.com/search', {
+          params: {
+            engine: 'google',
+            q: `site:in.indeed.com/viewjob ${searchTerm} ${location || 'India'}`,
+            api_key: apiKey,
+            hl: 'en',
+            gl: 'in',
+            num: 15,
+          },
+          timeout: TIMEOUT,
+        });
+        const orgItems = orgRes.data?.organic_results || [];
+        const seenUrls = new Set(jobs.map(j => j.url));
+        for (const item of orgItems) {
+          if (item.link && item.link.includes('indeed.com')) {
+            const url = unwrapGoogleUrl(item.link);
+            if (!seenUrls.has(url)) {
+              seenUrls.add(url);
+              const cleanTitle = (item.title || searchTerm).replace(/\s*-\s*Indeed.*$/i, '').trim();
+              jobs.push({
+                source:         'indeed',
+                sourcePlatform: 'indeed',
+                platform:       'Indeed',
+                externalId:     url.split('jk=')[1]?.split('&')[0] || `indeed-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                title:          cleanTitle,
+                company:        'Indeed Verified Employer',
+                location:       location || 'India',
+                description:    item.snippet || `Indeed position for ${cleanTitle}`,
+                url,
+                salary:         '',
+                remote:         Boolean(/remote/i.test(item.title || '') || /remote/i.test(item.snippet || '')),
+                jobType:        'Full-time',
+                postedAt:       parseRelativeDate(item.date || null),
+                skills:         [],
+              });
+            }
+          }
+        }
+      } catch (orgErr) {
+        logger.warn(`[Indeed] Organic fallback search failed: ${orgErr.message}`);
+      }
+    }
 
-    if (jobs.length > 0) {
+    const sortedJobs = jobs.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
+
+    logger.info(`[Indeed] Found ${sortedJobs.length} jobs via SerpAPI for "${searchTerm}" in "${location}"`);
+
+    if (sortedJobs.length > 0) {
       SerpApiCache.findOneAndUpdate(
         { cacheKey },
-        { cacheKey, jobs, fetchedAt: new Date() },
+        { cacheKey, jobs: sortedJobs, fetchedAt: new Date() },
         { upsert: true, new: true }
       ).catch(e => logger.warn(`[Indeed] Cache write failed: ${e.message}`));
     }
 
-    return jobs.slice(0, limit);
+    return sortedJobs.slice(0, limit);
   } catch (err) {
     logger.warn(`[Indeed] SerpAPI query failed: ${err.message}`);
     return [];
