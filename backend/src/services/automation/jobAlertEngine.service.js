@@ -86,7 +86,17 @@ const runJobAlertPipeline = async (userId) => {
 
     const skills = getAllSkills(resumeData?.skills || {}).map(s => s.toLowerCase());
 
-    // Score jobs for match relevance
+    // Score jobs for match relevance with high priority for Naukri, LinkedIn, and Indeed
+    const getPlatformKey = (j) => {
+      const src = (j.source || '').toLowerCase();
+      const ptf = (j.sourcePlatform || '').toLowerCase();
+      if (['naukri', 'linkedin', 'indeed'].includes(src)) return src;
+      if (['naukri', 'linkedin', 'indeed'].includes(ptf)) return ptf;
+      if (src && src !== 'other' && src !== 'apify') return src;
+      if (ptf && ptf !== 'other' && ptf !== 'apify') return ptf;
+      return 'other';
+    };
+
     const getJobRelevance = (j) => {
       let s = 0;
       const t = (j.title || '').toLowerCase();
@@ -97,22 +107,15 @@ const runJobAlertPipeline = async (userId) => {
       for (const sk of skills) {
         if (sk.length > 1 && (t.includes(sk) || d.includes(sk))) s += 5;
       }
+      // Top platform priority bonus: Naukri, LinkedIn, and Indeed
+      const pKey = getPlatformKey(j);
+      if (['naukri', 'linkedin', 'indeed'].includes(pKey)) s += 200;
       return s;
     };
 
-    const getPlatformKey = (j) => {
-      const src = (j.source || '').toLowerCase();
-      const ptf = (j.sourcePlatform || '').toLowerCase();
-      if (['linkedin', 'naukri', 'indeed'].includes(src)) return src;
-      if (['linkedin', 'naukri', 'indeed'].includes(ptf)) return ptf;
-      if (src && src !== 'other' && src !== 'apify') return src;
-      if (ptf && ptf !== 'other' && ptf !== 'apify') return ptf;
-      return 'other';
-    };
-
     // ── Multi-Platform Balanced Interleaving ──────────────────────────────────
-    // Group jobs by canonical platform to prevent one source (e.g. Adzuna/Himalayas)
-    // from crowding out LinkedIn, Naukri, and Indeed.
+    // Group jobs by canonical platform, ensuring top priority portals (Naukri, LinkedIn, Indeed)
+    // lead the evaluation pool.
     const byPlatform = {};
     for (const j of newJobs) {
       const p = getPlatformKey(j);
@@ -126,7 +129,7 @@ const runJobAlertPipeline = async (userId) => {
     }
 
     // Round-robin interleave across platforms, prioritizing Indian/global favorites
-    const priorityPlatforms = ['linkedin', 'naukri', 'indeed', 'adzuna', 'himalayas', 'remotive', 'jobicy', 'arbeitnow', 'google-jobs'];
+    const priorityPlatforms = ['naukri', 'linkedin', 'indeed', 'google-jobs', 'adzuna', 'himalayas', 'remotive', 'jobicy', 'arbeitnow'];
     const activePlatforms = [
       ...priorityPlatforms.filter(p => byPlatform[p] && byPlatform[p].length > 0),
       ...Object.keys(byPlatform).filter(p => !priorityPlatforms.includes(p) && byPlatform[p].length > 0)
@@ -160,8 +163,9 @@ const runJobAlertPipeline = async (userId) => {
       if (alertsSent >= maxAlerts) break;
 
       const pKey = getPlatformKey(job);
-      // Cap per-platform in early iterations so each platform gets a chance
-      if (activePlatforms.length > 1 && (platformAlertCount[pKey] || 0) >= maxPerPlatform && alertsSent + (activePlatforms.length - Object.keys(platformAlertCount).length) < maxAlerts) {
+      const isTopPriority = ['naukri', 'linkedin', 'indeed'].includes(pKey);
+      // Top priority platforms get full alert allocation, secondary platforms capped to leave room
+      if (!isTopPriority && activePlatforms.length > 1 && (platformAlertCount[pKey] || 0) >= maxPerPlatform && alertsSent + 1 < maxAlerts) {
         continue;
       }
 

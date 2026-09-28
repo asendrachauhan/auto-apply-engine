@@ -826,6 +826,26 @@ export class JobAlertsComponent implements OnInit {
     this.loadingPdf.set(true);
     this.api.downloadAlertPdf(alert._id).subscribe({
       next: (blob: Blob) => {
+        if (blob.type === 'application/json') {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const res = JSON.parse(reader.result as string);
+              if (res.data?.url) {
+                window.open(res.data.url, '_blank');
+                this.toast.success(this.translate.instant('ALERTS.DOWNLOAD_SUCCESS') || 'PDF opened successfully');
+              } else {
+                this.toast.error(res.message || 'PDF not available');
+              }
+            } catch {
+              this.toast.error('PDF not available');
+            }
+            this.loadingPdf.set(false);
+          };
+          reader.readAsText(blob);
+          return;
+        }
+
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         const company = (alert.company || 'Job').replace(/\s+/g, '_');
@@ -839,7 +859,13 @@ export class JobAlertsComponent implements OnInit {
         this.toast.success(this.translate.instant('ALERTS.DOWNLOAD_SUCCESS') || 'PDF downloaded successfully');
       },
       error: () => {
-        this.toast.error(this.translate.instant('ALERTS.DOWNLOAD_ERROR') || 'PDF not available');
+        // Fallback: if alert already has a stored Cloudinary URL, open it directly
+        if (alert.tailoredResumePdfUrl) {
+          window.open(alert.tailoredResumePdfUrl, '_blank');
+          this.toast.success('PDF opened successfully');
+        } else {
+          this.toast.error(this.translate.instant('ALERTS.DOWNLOAD_ERROR') || 'PDF not available');
+        }
         this.loadingPdf.set(false);
       }
     });

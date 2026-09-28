@@ -1,13 +1,34 @@
 # AutoApply AI — Current Status
-Last updated: 2026-09-28 (Session 62)
+Last updated: 2026-09-28 (Session 63)
 
 ## Snapshot
 - Backend: Express/MongoDB (Node.js v24), 36 test suites, 349 tests passing (100%).
-- Frontend: Angular 17+ standalone components, 15 test suites, 93 tests passing (100%), TypeScript 0 errors, production build verified.
-- Email Dispatch & Free SMTP Fallback: Unified multi-tier transport with automatic failover (`emailTransport.js`). Primary: Resend SDK (`resend`). Secondary / Free Standalone: Nodemailer SMTP supporting Gmail App Passwords (500 free emails/day), Brevo/Sendinblue (300 free emails/day to any recipient without domain verification), Mailjet (200 free emails/day), or custom SMTP. Transparently rescues verification, password resets, candidate job alerts, application updates, and admin critical error mailings if Resend is unconfigured, rate-limited, or hits free sandbox restrictions ("You can only send testing emails to your own email address").
-- AI Resilience & Dual-Model Failover: Migrated from `gpt-oss-120b` (which consumed 1500+ reasoning tokens per prompt) to `qwen/qwen3.8-27b` (0 reasoning tokens, ~500ms completions, 32k context) with automatic failover to `openai/gpt-oss-20b`. Decoupled AI errors from Express (`process.exit(1)` removed) so login and non-AI features stay 100% accessible during rate limits.
-- Job Posting Date Visibility & Recency-First Scraping: Built universal `dateParser.js` supporting relative times ("Just now", "1m ago", "10 mins ago", "2 hours ago", "yesterday", array extensions). Surfaced prominent posting date badges with 24h freshness highlighting and exact timestamp tooltips across Job Alerts and Applications. Added a `Last 1 Hour (<60m)` recency filter and prioritized newest postings during discovery and scoring.
-- Naukri & Indeed Scraper Modernization: Restored live scraping with SerpApi Google Jobs targeted queries for Indeed and Google Search for Naukri, backed by `SerpApiCache`. Expanded Indian region matching to include all Indian states.
+- Frontend: Angular 17+ standalone components, 15 test suites, 93 tests passing (100%), TypeScript 0 errors, production build verified (exit code 0, 0 warnings).
+- Priority Portals Pipeline: Naukri, LinkedIn, and Indeed configured as top-tier high-priority sources (+250 relevance bonus, scanned first, never throttled by per-platform limits).
+- Direct Verified Job URLs: Resolved broken Google redirect loops by extracting direct application URLs from `job.apply_options` and unwrapping `/url?q=` redirects.
+- Pure-JS Vector PDF Failover Engine: Built `generatePdfWithPdfLib` using `pdf-lib` (15ms generation, zero browser dependency) to rescue any Puppeteer sandbox/library crashes and eliminate 500 download failures.
+- Expired & Ghost Job Filter: Added recency filters (`tbs: 'qdr:m'`) and keywords filtering to skip expired or closed listings on Naukri and other portals.
+- Hourly Automated Cron Discovery: Configured default `CRON_SCHEDULE='0 * * * *'` to scrape fresh listings every hour and dispatch job alerts.
+- Animated Glassmorphic Splash & Landing Overhaul: Redesigned the initial app splash with gyroscopic radar, orbiting luminous satellites, dynamic glowing progress bar, and cycling tickers. Overhauled Landing page with "Manual Applying vs AutoApply AI" comparison and Priority #1 portal badges.
+
+## Session 63 — Naukri/LinkedIn/Indeed Top Priority, Hourly Scraper Cron, Direct Job URLs, Pure-JS Resume PDF Engine & Loading Splash Overhaul (2026-09-28)
+- **Features & Fixes**:
+  1. `backend/src/services/resume/pdfGenerator.service.js`: Built pure-JavaScript vector PDF generator (`generatePdfWithPdfLib`) using `pdf-lib` with standard A4 metrics, Helvetica typography, quantified metrics, clean semantic sections, and zero headless browser requirements. Wrapped `generateResumePDF()` and `renderResumeToBuffer()` to automatically fail over to `generatePdfWithPdfLib` if Puppeteer encounters launch failures, missing system libraries, or timeouts. Sanitized `job.company` string methods to avoid undefined crashes.
+  2. `backend/src/controllers/jobAlert.controller.js`: Refactored `getResumePDF` with complete candidate data hydration (`fullName`, `email`, `phone`, `location`, `links`, `projects`, `education`) from `Resume` and `JobAlert`. Set binary streaming headers (`Content-Type: application/pdf`, `Content-Disposition`, `Content-Length`) when `download=true`.
+  3. `frontend/src/app/features/job-alerts/job-alerts.component.ts`: Upgraded `downloadPDF` to inspect binary blobs for JSON error messages using `FileReader`, toast user-friendly error messages, and fall back to opening direct Cloudinary stored URLs.
+  4. `backend/src/services/jobs/serpapi.scraper.js` & `indeed.rss.scraper.js`: Implemented `unwrapGoogleUrl()` and `extractBestJobUrl()`, prioritizing direct links from `job.apply_options` (direct company portals, `naukri.com/job-listings`, `linkedin.com/jobs/view`, `indeed.com/viewjob`) rather than falling back to Google search query pages (`job.share_link`).
+  5. `backend/src/services/jobs/naukri.scraper.js`: Added past-month Google search recency constraint (`tbs: 'qdr:m'`) and filtered out listings containing expired keywords (`expired`, `closed`, `no longer available`, `not accepting applications`). Added `unwrapGoogleUrl()`.
+  6. `backend/src/services/jobs/jobDiscovery.service.js` & `jobAggregator.service.js`: Reordered scraper execution and array assembly so `naukri`, `linkedin`, and `indeed` are scraped and prioritized at the top of the job feeds before secondary boards.
+  7. `backend/src/services/automation/jobAlertEngine.service.js` & `automationEngine.service.js`: Added +200 / +250 priority relevance bonus for jobs originating from Naukri, LinkedIn, or Indeed. Protected top portals from being prematurely trimmed by per-platform quotas.
+  8. `backend/src/services/automation/scheduler.service.js` & `scheduler.service.test.js`: Changed default `CRON_SCHEDULE` to `'0 * * * *'` (hourly execution at minute 0). Wired `jobAlertEngine.runForAllUsers()` to run hourly alert scans for all active candidates. Updated test assertions to pass 10/10.
+  9. `frontend/src/index.html`: Completely redesigned initial app loading experience (`applymatic.vercel.app`), replacing the static black rectangle with an animated futuristic glassmorphic container, ambient pulsing cyan/purple glow orbs, dual rotating gyroscopic radar rings with an orbiting luminous satellite dot, glowing progress bar with high-speed shimmer, and cycling status ticker text.
+  10. `frontend/src/app/features/landing/landing.component.ts`: Updated Hero headline, eyebrow, and lead text to directly address the manual job hunting struggle on Naukri, LinkedIn, and Indeed. Added "The Job Seeker Reality: The Exhausting Manual Way vs The AutoApply AI Solution" comparison section (`#solution`) and elevated Naukri, LinkedIn, and Indeed to Priority #1 cards with glowing golden crowns and hourly scraping tags.
+  11. `frontend/angular.json`: Adjusted `anyComponentStyle` budget to 30kb warning / 50kb error to support rich landing page styling with zero build warnings.
+- **Verification**:
+  - `npx tsc --noEmit`: 0 errors.
+  - Frontend unit tests: 15/15 suites passed (93/93 tests, 100%).
+  - Backend unit tests: 36/36 suites passed (349/349 tests, 100%).
+  - Production build (`ng build --configuration production`): clean exit code 0, 0 warnings.
 
 ## Session 62 — Email Dispatch with Free SMTP Fallback, AI Migration, Posting Date Visibility & Recency Engine (2026-09-28)
 - **Features & Fixes**:

@@ -97,11 +97,24 @@ const fetchIndeedViaSerpApi = async (searchTerm, location, limit = 25) => {
       timeout: TIMEOUT,
     });
 
+    const unwrapGoogleUrl = (rawUrl = '') => {
+      if (!rawUrl || typeof rawUrl !== 'string') return '';
+      const trimmed = rawUrl.trim();
+      try {
+        if (trimmed.includes('google.com/url?') || trimmed.includes('/url?q=') || trimmed.includes('/url?url=')) {
+          const parsed = new URL(trimmed);
+          const target = parsed.searchParams.get('q') || parsed.searchParams.get('url');
+          if (target && target.startsWith('http')) return decodeURIComponent(target);
+        }
+      } catch {}
+      return trimmed;
+    };
+
     const results = res.data?.jobs_results || [];
     const jobs = results.map(j => {
-      // Find direct Indeed apply link if present
+      // Find direct Indeed apply link if present, or first direct apply option
       const indeedOption = (j.apply_options || []).find(o => /indeed/i.test(o.title || '') || /indeed/i.test(o.link || ''));
-      const directUrl = indeedOption?.link || j.related_links?.[0]?.link || j.share_link || '';
+      const directUrl = unwrapGoogleUrl(indeedOption?.link || j.apply_options?.[0]?.link || j.related_links?.[0]?.link || j.share_link || '');
 
       return {
         source:         'indeed',

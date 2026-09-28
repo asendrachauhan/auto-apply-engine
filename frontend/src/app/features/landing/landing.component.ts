@@ -40,10 +40,10 @@ interface PricingPlan {
             <aa-brand-logo variant="horizontal" [transparent]="true" [height]="38"/>
           </a>
           <nav class="nav-links" aria-label="Page sections">
+            <a href="#solution">Why AutoApply</a>
             <a href="#features">Features</a>
             <a href="#ats-engine">ATS Engine</a>
             <a href="#platforms">Platforms</a>
-            <a href="#how-it-works">How It Works</a>
             <a href="#calculator">ROI Calculator</a>
             <a href="#comparison">Compare</a>
             <a href="#pricing">Pricing</a>
@@ -69,30 +69,30 @@ interface PricingPlan {
             <div class="eyebrow-pill">
               <span class="live-pulse"></span>
               <aa-brand-logo variant="mark" [height]="16" style="margin-right: 4px;"/>
-              <span>Autonomous Job Application &amp; Intelligence Platform</span>
+              <span>Naukri • LinkedIn • Indeed Hourly Priority Scraper</span>
             </div>
             <h1 class="hero-title">
-              Land Your Next Job 10x Faster.<br/>
-              <span class="gradient-text">Real ATS Score. Zero Ghost Jobs. Autopilot.</span>
+              Stop Manually Applying on Naukri, LinkedIn &amp; Indeed.<br/>
+              <span class="gradient-text">Hourly Auto-Scraping. Real ATS Resumes. Autopilot.</span>
             </h1>
             <p class="hero-lead">
-              AutoApply AI scores your resume against genuine ATS parsing rubrics, audits every job listing for 
-              ghost-job fraud across 8 signals, tailors your credentials with quantified impact, and applies autonomously across 
-              top platforms — with human-in-the-loop safety.
+              Finding and applying manually across Naukri, LinkedIn, and Indeed is exhausting, slow, and full of expired jobs. 
+              AutoApply AI prioritizes and scrapes top portals every 60 minutes, purges ghost listings, generates tailored ATS resumes in 15ms, 
+              and executes autonomous application flows — like Naukri Neo, but across every major portal.
             </p>
             <div class="hero-actions">
               <aa-button size="lg" [routerLink]="['/auth/register']" icon="zap">
                 Start Free — No Credit Card Required
               </aa-button>
-              <a class="secondary-btn" href="#interactive-preview">
-                <aa-icon name="checkCircle" [size]="16"/> Explore Interactive Demo
+              <a class="secondary-btn" href="#solution">
+                <aa-icon name="checkCircle" [size]="16"/> See Manual vs Autopilot
               </a>
             </div>
             <div class="hero-badges">
-              <span><aa-icon name="shield" [size]="14"/> 100% GDPR &amp; Portals Compliant</span>
-              <span><aa-icon name="checkCircle" [size]="14"/> Verified Real Job Filters</span>
-              <span><aa-icon name="sparkles" [size]="14"/> Real 0–100 ATS Scoring</span>
-              <span><aa-icon name="users" [size]="14"/> Safe Human-in-the-Loop Apply</span>
+              <span><aa-icon name="zap" [size]="14"/> Priority #1: Naukri, LinkedIn &amp; Indeed</span>
+              <span><aa-icon name="checkCircle" [size]="14"/> Scanned Every 60 Minutes</span>
+              <span><aa-icon name="shield" [size]="14"/> Zero Expired or Ghost Jobs</span>
+              <span><aa-icon name="sparkles" [size]="14"/> 15ms Tailored Vector PDF Resume</span>
             </div>
           </div>
 
@@ -418,16 +418,143 @@ interface PricingPlan {
         </div>
       </section>
 
+      <!-- ═══ THE PROBLEM & THE SOLUTION: MANUAL VS AUTOPILOT ═══ -->
+      <section class="problem-solution-section" id="solution">
+        <div class="section-inner">
+          <div class="text-center">
+            <span class="section-eyebrow">THE REALITY OF JOB HUNTING</span>
+            <h2>Tired of the Daily Manual Job Search Grind?</h2>
+            <p class="section-lead">
+              Every serious job seeker is stuck in the same frustrating loop — juggling Naukri, LinkedIn, and Indeed tabs for hours. 
+              Here is how AutoApply AI completely eliminates the manual friction.
+            </p>
+          </div>
+
+          <div class="problem-solution-grid">
+            <!-- Left: The Frustrating Manual Way -->
+            <div class="problem-card">
+              <div class="ps-header bad">
+                <div class="ps-icon"><aa-icon name="alertTriangle" [size]="20"/></div>
+                <div>
+                  <h3>The Exhausting Manual Way</h3>
+                  <span class="ps-subtitle">Naukri + LinkedIn + Indeed Manual Applying</span>
+                </div>
+              </div>
+              <ul class="ps-list bad">
+                <li>
+                  <aa-icon name="close" [size]="16" class="text-danger"/>
+                  <div>
+                    <strong>3+ Hours Wasted Daily:</strong>
+                    <span>Switching across 20+ browser tabs on Naukri, LinkedIn, and Indeed, filling repetitive company questionnaires.</span>
+                  </div>
+                </li>
+                <li>
+                  <aa-icon name="close" [size]="16" class="text-danger"/>
+                  <div>
+                    <strong>Expired &amp; Closed Job Trap:</strong>
+                    <span>Clicking listings only to discover they expired weeks ago, or landing on broken Google redirect loops.</span>
+                  </div>
+                </li>
+                <li>
+                  <aa-icon name="close" [size]="16" class="text-danger"/>
+                  <div>
+                    <strong>Generic Resumes Discarded by ATS:</strong>
+                    <span>Applying with the same static PDF gets discarded in seconds by Workday, Taleo, and Greenhouse filters.</span>
+                  </div>
+                </li>
+                <li>
+                  <aa-icon name="close" [size]="16" class="text-danger"/>
+                  <div>
+                    <strong>Ghost Postings Everywhere:</strong>
+                    <span>Over 35% of listings are dead reposts or resume harvesting traps that never interview candidates.</span>
+                  </div>
+                </li>
+              </ul>
+              <div class="ps-summary bad">
+                Result: Mental exhaustion, 100+ manual hours lost, and zero interview callbacks.
+              </div>
+            </div>
+
+            <!-- Right: The AutoApply AI Way -->
+            <div class="solution-card">
+              <div class="ps-badge">AUTONOMOUS ADVANTAGE</div>
+              <div class="ps-header good">
+                <div class="ps-icon"><aa-icon name="zap" [size]="20"/></div>
+                <div>
+                  <h3>The AutoApply AI Solution</h3>
+                  <span class="ps-subtitle">Naukri Neo Style Automation Across All Top Portals</span>
+                </div>
+              </div>
+              <ul class="ps-list good">
+                <li>
+                  <aa-icon name="checkCircle" [size]="16" class="text-success"/>
+                  <div>
+                    <strong>Naukri, LinkedIn &amp; Indeed Top Priority:</strong>
+                    <span>Our pipeline prioritizes the top 3 job boards first, indexing and ranking them at the top of your radar.</span>
+                  </div>
+                </li>
+                <li>
+                  <aa-icon name="checkCircle" [size]="16" class="text-success"/>
+                  <div>
+                    <strong>Hourly Automated Scraping:</strong>
+                    <span>Scrapes newly published jobs every 60 minutes so you're consistently among the first 10 applicants.</span>
+                  </div>
+                </li>
+                <li>
+                  <aa-icon name="checkCircle" [size]="16" class="text-success"/>
+                  <div>
+                    <strong>Direct Verified Job URLs:</strong>
+                    <span>Cleanly unwraps Google redirect queries straight to real employer apply pages — zero broken links.</span>
+                  </div>
+                </li>
+                <li>
+                  <aa-icon name="checkCircle" [size]="16" class="text-success"/>
+                  <div>
+                    <strong>Instant Tailored ATS PDF Resumes:</strong>
+                    <span>Pure-JS high-speed vector PDF generator tailors metrics, skills, and experience for each role with zero server crashes.</span>
+                  </div>
+                </li>
+                <li>
+                  <aa-icon name="checkCircle" [size]="16" class="text-success"/>
+                  <div>
+                    <strong>Expired &amp; Ghost Job Shield:</strong>
+                    <span>8-signal AI filter automatically skips expired, closed, and scam listings before you waste any effort.</span>
+                  </div>
+                </li>
+              </ul>
+              <div class="ps-summary good">
+                Result: 10x faster job landing, automated daily pipeline, and 3x more interview requests.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ═══ SUPPORTED PLATFORMS ═══ -->
       <section class="platforms-section" id="platforms">
         <div class="section-inner text-center">
-          <span class="section-eyebrow">ECOSYSTEM COMPATIBILITY</span>
-          <h2>Where AutoApply AI Finds &amp; Prepares Applications</h2>
-          <p class="section-lead">Autonomous parsing and prefill packages built for the world's most dominant job portals.</p>
+          <span class="section-eyebrow">PRIORITY ECOSYSTEM</span>
+          <h2>Top-Priority Job Portals &amp; Global Networks</h2>
+          <p class="section-lead">Naukri, LinkedIn, and Indeed receive top-priority hourly scraping and direct application packaging, backed by global tech boards.</p>
           <div class="platforms-grid">
-            <div class="platform-card"><div class="plat-icon"><aa-icon name="linkedin" [size]="22"/></div><span>LinkedIn</span><span class="plat-tag">Live / Alerts</span></div>
-            <div class="platform-card"><div class="plat-icon"><aa-icon name="briefcase" [size]="22"/></div><span>Indeed</span><span class="plat-tag">Aggregated</span></div>
-            <div class="platform-card"><div class="plat-icon"><aa-icon name="target" [size]="22"/></div><span>Naukri</span><span class="plat-tag">India Dedicated</span></div>
+            <div class="platform-card priority-platform">
+              <div class="priority-crown">★ PRIORITY #1</div>
+              <div class="plat-icon"><aa-icon name="target" [size]="24"/></div>
+              <span class="plat-title">Naukri</span>
+              <span class="plat-tag priority-tag">Hourly Scrape • India / Gulf</span>
+            </div>
+            <div class="platform-card priority-platform">
+              <div class="priority-crown">★ PRIORITY #1</div>
+              <div class="plat-icon"><aa-icon name="linkedin" [size]="24"/></div>
+              <span class="plat-title">LinkedIn</span>
+              <span class="plat-tag priority-tag">Hourly Scrape • Direct Post</span>
+            </div>
+            <div class="platform-card priority-platform">
+              <div class="priority-crown">★ PRIORITY #1</div>
+              <div class="plat-icon"><aa-icon name="briefcase" [size]="24"/></div>
+              <span class="plat-title">Indeed</span>
+              <span class="plat-tag priority-tag">Hourly Scrape • Direct Apply</span>
+            </div>
             <div class="platform-card"><div class="plat-icon"><aa-icon name="checkCircle" [size]="22"/></div><span>Glassdoor</span><span class="plat-tag">Salaries</span></div>
             <div class="platform-card"><div class="plat-icon"><aa-icon name="zap" [size]="22"/></div><span>Wellfound</span><span class="plat-tag">Startups</span></div>
             <div class="platform-card"><div class="plat-icon"><aa-icon name="mapPin" [size]="22"/></div><span>Remotive</span><span class="plat-tag">Global Remote</span></div>
@@ -909,6 +1036,59 @@ interface PricingPlan {
     .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12.5px; }
     .calc-row.highlighted { color: #22e6f2; font-size: 14px; font-weight: 700; }
 
+    /* ── The Problem & Solution: Manual vs Autopilot ── */
+    .problem-solution-section { padding: 80px 0; background: rgba(0, 0, 0, 0.15); border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); }
+    .problem-solution-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 40px; }
+    @media (max-width: 860px) { .problem-solution-grid { grid-template-columns: 1fr; } }
+    
+    .problem-card {
+      padding: 32px 28px;
+      border-radius: 18px;
+      border: 1px solid rgba(239, 68, 68, 0.28);
+      background: rgba(239, 68, 68, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .solution-card {
+      position: relative;
+      padding: 32px 28px;
+      border-radius: 18px;
+      border: 1px solid rgba(34, 230, 242, 0.35);
+      background: rgba(10, 24, 48, 0.75);
+      box-shadow: 0 10px 40px rgba(8, 124, 245, 0.14);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .ps-badge {
+      position: absolute;
+      top: -12px;
+      right: 24px;
+      background: linear-gradient(135deg, #22E6F2, #087CF5);
+      color: #071433;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.8px;
+    }
+    .ps-header { display: flex; align-items: center; gap: 14px; }
+    .ps-header.bad .ps-icon { background: rgba(239, 68, 68, 0.12); color: #f87171; }
+    .ps-header.good .ps-icon { background: rgba(34, 230, 242, 0.12); color: #22e6f2; }
+    .ps-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .ps-header h3 { font-size: 17px; margin: 0; font-weight: 700; color: var(--text); }
+    .ps-subtitle { font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 2px; }
+    
+    .ps-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+    .ps-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 13px; line-height: 1.5; color: var(--text-muted); }
+    .ps-list li strong { color: var(--text); display: block; margin-bottom: 2px; font-size: 13px; }
+    .ps-list li aa-icon { margin-top: 3px; flex-shrink: 0; }
+    
+    .ps-summary { padding: 12px 16px; border-radius: 10px; font-size: 12.5px; font-weight: 600; line-height: 1.4; }
+    .ps-summary.bad { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    .ps-summary.good { background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); color: #86efac; }
+
     /* ── Platforms Grid ── */
     .platforms-section { background: rgba(0,0,0,0.25); border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); padding: 40px 0; }
     .platforms-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 36px; }
@@ -916,7 +1096,35 @@ interface PricingPlan {
     .platform-card { padding: 18px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); display: flex; flex-direction: column; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; transition: transform .2s ease; }
     .platform-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.15); }
     .plat-icon { color: var(--accent); }
+    .plat-title { font-weight: 700; color: var(--text); }
     .plat-tag { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
+
+    .priority-platform {
+      position: relative;
+      background: linear-gradient(180deg, rgba(34, 230, 242, 0.07) 0%, rgba(8, 124, 245, 0.03) 100%) !important;
+      border: 1px solid rgba(34, 230, 242, 0.4) !important;
+      box-shadow: 0 4px 20px rgba(34, 230, 242, 0.12);
+    }
+    .priority-crown {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, #f59e0b, #eab308);
+      color: #1e1b4b;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.8px;
+      white-space: nowrap;
+    }
+    .priority-tag {
+      background: rgba(34, 230, 242, 0.15) !important;
+      color: #22e6f2 !important;
+      border: 1px solid rgba(34, 230, 242, 0.3);
+      font-weight: 700;
+    }
 
     /* ── ROI Calculator Section ── */
     .calculator-section { padding: 80px 0; }
@@ -1117,6 +1325,13 @@ interface PricingPlan {
       .secondary-btn:hover { background: #ffffff; }
       .roi-slider { background: rgba(0,0,0,0.1); }
       .compare-table td.col-highlight { background: rgba(8,124,245,0.05); }
+      .problem-solution-section { background: rgba(241, 245, 249, 0.5); }
+      .problem-card { background: #ffffff; border-color: rgba(239, 68, 68, 0.25); box-shadow: 0 4px 18px rgba(239, 68, 68, 0.06); }
+      .solution-card { background: #ffffff; border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1); }
+      .priority-platform { background: #ffffff !important; border-color: rgba(8, 124, 245, 0.45) !important; box-shadow: 0 4px 18px rgba(8, 124, 245, 0.1); }
+      .priority-tag { background: rgba(8, 124, 245, 0.1) !important; color: #087cf5 !important; border-color: rgba(8, 124, 245, 0.25); }
+      .ps-summary.bad { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+      .ps-summary.good { background: #f0fdf4; color: #15803d; border-color: #86efac; }
       .platforms-section { background: rgba(241, 245, 249, 0.5); }
       .platform-card { background: #ffffff; border-color: rgba(226, 232, 240, 0.9); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04); }
       .platform-card:hover { border-color: rgba(99,102,241,0.4); }

@@ -130,45 +130,57 @@ const getResumePDF = async (req, res, next) => {
     const alert = await JobAlert.findOne({ _id: req.params.id, userId: req.user._id });
     if (!alert) return sendError(res, 404, 'Alert not found');
 
+    const resume = await Resume.findOne({ userId: req.user._id });
+    const baseCandidate = resume ? (resume.optimizedData || resume.parsedData || {}) : {};
+    const safeCompany = (alert.company || 'Job').replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    const mergedResume = {
+      ...baseCandidate,
+      ...(alert.tailoredResume || {}),
+      fullName: baseCandidate.fullName || alert.tailoredResume?.fullName || req.user?.name || 'Candidate',
+      email:    baseCandidate.email    || alert.tailoredResume?.email    || req.user?.email || '',
+      phone:    baseCandidate.phone    || alert.tailoredResume?.phone    || '',
+      location: baseCandidate.location || alert.tailoredResume?.location || '',
+      links:    baseCandidate.links    || alert.tailoredResume?.links    || {},
+      education: baseCandidate.education || [],
+      projects:  baseCandidate.projects  || [],
+      certifications: baseCandidate.certifications || [],
+    };
+
     // If binary download is requested, generate/stream PDF directly
     if (req.query.download === 'true') {
-      const resume = await Resume.findOne({ userId: req.user._id });
-      if (!resume) return sendError(res, 404, 'Resume not found');
-
       const { pdfUrl, pdfBuffer } = await generateResumePDF(
-        { ...(resume.optimizedData || resume.parsedData), ...(alert.tailoredResume || {}) },
-        { title: alert.title, company: alert.company },
+        mergedResume,
+        { title: alert.title || 'Role', company: alert.company || 'Company' },
         req.user._id
       );
 
       if (pdfUrl && !alert.tailoredResumePdfUrl) {
-        await JobAlert.findByIdAndUpdate(alert._id, { tailoredResumePdfUrl: pdfUrl });
+        await JobAlert.findByIdAndUpdate(alert._id, { tailoredResumePdfUrl: pdfUrl }).catch(() => {});
       }
 
-      if (pdfBuffer) {
-        const safeCompany = (alert.company || 'Job').replace(/[^a-zA-Z0-9_-]/g, '_');
+      if (pdfBuffer && pdfBuffer.length > 0) {
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="Tailored_Resume_${safeCompany}.pdf"`);
+        res.setHeader('Content-Length', pdfBuffer.length);
         return res.end(pdfBuffer);
       }
+
+      return sendError(res, 500, 'Could not generate PDF buffer. Please try again.');
     }
 
     if (alert.tailoredResumePdfUrl) {
       return sendSuccess(res, 200, 'PDF URL', { url: alert.tailoredResumePdfUrl });
     }
 
-    // Regenerate if not available
-    const resume = await Resume.findOne({ userId: req.user._id });
-    if (!resume) return sendError(res, 404, 'Resume not found');
-
-    const { pdfUrl, pdfBuffer } = await generateResumePDF(
-      { ...(resume.optimizedData || resume.parsedData), ...(alert.tailoredResume || {}) },
-      { title: alert.title, company: alert.company },
+    const { pdfUrl } = await generateResumePDF(
+      mergedResume,
+      { title: alert.title || 'Role', company: alert.company || 'Company' },
       req.user._id
     );
 
     if (pdfUrl) {
-      await JobAlert.findByIdAndUpdate(alert._id, { tailoredResumePdfUrl: pdfUrl });
+      await JobAlert.findByIdAndUpdate(alert._id, { tailoredResumePdfUrl: pdfUrl }).catch(() => {});
     }
 
     return sendSuccess(res, 200, 'PDF generated', { url: pdfUrl || `/api/alerts/${alert._id}/resume-pdf?download=true` });

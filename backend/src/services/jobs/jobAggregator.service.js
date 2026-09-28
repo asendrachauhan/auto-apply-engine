@@ -145,13 +145,22 @@ const aggregateJobs = async (preferences = {}, options = {}) => {
   ] = results.map(r => (r.status === 'fulfilled' ? r.value : []));
 
   const rawJobs = [
-    ...remotiveJobs, ...himalayasJobs, ...jobicyJobs,
-    ...adzunaJobs, ...arbeitnowJobs,
-    ...indeedJobs, ...naukriJobs, ...googleJobs,
-    ...apifyLinkedinJobs, ...apifyNaukriJobs, ...apifyIndeedJobs,
+    // Top Priority: Naukri, LinkedIn, Indeed
+    ...naukriJobs,
+    ...apifyNaukriJobs,
+    ...apifyLinkedinJobs,
+    ...indeedJobs,
+    ...apifyIndeedJobs,
+    // Secondary portals & aggregators
+    ...googleJobs,
+    ...adzunaJobs,
+    ...himalayasJobs,
+    ...remotiveJobs,
+    ...jobicyJobs,
+    ...arbeitnowJobs,
   ].filter(j => j.title && j.url);
 
-  logger.info(`Total raw jobs fetched: ${rawJobs.length} (remotive:${remotiveJobs.length} himalayas:${himalayasJobs.length} jobicy:${jobicyJobs.length} adzuna:${adzunaJobs.length} arbeitnow:${arbeitnowJobs.length} indeed:${indeedJobs.length} naukri:${naukriJobs.length} google:${googleJobs.length} apifyIn:${apifyLinkedinJobs.length} apifyNk:${apifyNaukriJobs.length})`);
+  logger.info(`Total raw jobs fetched: ${rawJobs.length} (naukri:${naukriJobs.length + apifyNaukriJobs.length} linkedin:${apifyLinkedinJobs.length} indeed:${indeedJobs.length + apifyIndeedJobs.length} google:${googleJobs.length} adzuna:${adzunaJobs.length} remotive:${remotiveJobs.length})`);
 
   // Ghost-job filter
   const minGhostScore = Number.isFinite(preferences?.ghostScoreMinimum)

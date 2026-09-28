@@ -27,10 +27,10 @@ describe('scheduler.service — startScheduler()', () => {
   });
 
   describe('automation cron', () => {
-    test('registers using CRON_SCHEDULE env var, defaulting to every 6 hours', () => {
+    test('registers using CRON_SCHEDULE env var, defaulting to every 1 hour', () => {
       delete process.env.CRON_SCHEDULE;
       startScheduler();
-      expect(cron.schedule).toHaveBeenCalledWith('0 */6 * * *', expect.any(Function));
+      expect(cron.schedule).toHaveBeenCalledWith('0 * * * *', expect.any(Function));
     });
 
     test('respects a custom CRON_SCHEDULE if set', () => {
@@ -48,7 +48,7 @@ describe('scheduler.service — startScheduler()', () => {
       AutomationSession.create = jest.fn().mockResolvedValue({ _id: 'session1' });
       runForUser.mockResolvedValue(undefined);
 
-      await registered['0 */6 * * *']();
+      await registered['0 * * * *']();
 
       expect(User.find).toHaveBeenCalledWith({ automationActive: true });
       expect(runForUser).toHaveBeenCalledTimes(2);
@@ -66,7 +66,7 @@ describe('scheduler.service — startScheduler()', () => {
         .mockRejectedValueOnce(new Error('boom'))
         .mockResolvedValueOnce(undefined);
 
-      await expect(registered['0 */6 * * *']()).resolves.not.toThrow();
+      await expect(registered['0 * * * *']()).resolves.not.toThrow();
       expect(runForUser).toHaveBeenCalledTimes(2);
     }, 15000);
 
@@ -74,7 +74,7 @@ describe('scheduler.service — startScheduler()', () => {
       startScheduler();
       User.find = jest.fn().mockReturnValue({ select: jest.fn().mockRejectedValue(new Error('db down')) });
 
-      await expect(registered['0 */6 * * *']()).resolves.not.toThrow();
+      await expect(registered['0 * * * *']()).resolves.not.toThrow();
     });
   });
 
@@ -108,6 +108,6 @@ describe('scheduler.service — startScheduler()', () => {
   test('both crons are registered independently — one does not interfere with the other', () => {
     startScheduler();
     expect(cron.schedule).toHaveBeenCalledTimes(2);
-    expect(Object.keys(registered)).toEqual(expect.arrayContaining(['0 */6 * * *', '0 3 * * *']));
+    expect(Object.keys(registered)).toEqual(expect.arrayContaining(['0 * * * *', '0 3 * * *']));
   });
 });

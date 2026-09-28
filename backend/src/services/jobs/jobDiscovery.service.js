@@ -139,56 +139,68 @@ const discoverJobs = async (user) => {
   // way the uncapped, uncached version would have.
   const googleJobsTitles = titles.slice(0, 3);
 
-  // Run all scrapers concurrently — gated by what the user's plan includes
+  // Run all scrapers concurrently — high-priority portals (Naukri, LinkedIn, Indeed) first
+  const [
+    naukriJobs,
+    apifyNaukriJobs,
+    linkedinJobs,
+    apifyLinkedinJobs,
+    indeedJobs,
+    apifyIndeedJobs,
+    adzunaJobs,
+    ...googleJobsResults
+  ] = await Promise.allSettled([
+    allowedSources.has('naukri')     ? scrapeNaukri(primaryTitle, primaryLocation) : Promise.resolve([]),
+    allowedSources.has('naukri')     ? scrapeNaukriApify(primaryTitle, primaryLocation) : Promise.resolve([]),
+    allowedSources.has('linkedin')   ? scrapeLinkedIn(primaryTitle, primaryLocation) : Promise.resolve([]),
+    allowedSources.has('linkedin')   ? scrapeLinkedInApify(primaryTitle, primaryLocation) : Promise.resolve([]),
+    scrapeIndeed(primaryTitle, primaryLocation),
+    allowedSources.has('indeed')     ? scrapeIndeedApify(primaryTitle, primaryLocation) : Promise.resolve([]),
+    allowedSources.has('adzuna')     ? scrapeAdzuna(primaryTitle, primaryLocation) : Promise.resolve([]),
+    ...googleJobsTitles.map(title => scrapeGoogleJobs(title, primaryLocation)),
+  ]);
+
+  // Secondary international/remote aggregators
   const [
     remotiveJobs,
     himalayasJobs,
     jobicyJobs,
-    adzunaJobs,
     arbeitnowJobs,
-    indeedJobs,
-    linkedinJobs,
-    naukriJobs,
-    apifyLinkedinJobs,
-    apifyNaukriJobs,
-    apifyIndeedJobs,
-    ...googleJobsResults
   ] = await Promise.allSettled([
     allowedSources.has('remotive')   ? scrapeRemotive(primaryTitle, 40) : Promise.resolve([]),
     allowedSources.has('himalayas')  ? scrapeHimalayas(primaryTitle, 40) : Promise.resolve([]),
     scrapeJobicy(primaryTitle, 40),
-    allowedSources.has('adzuna')     ? scrapeAdzuna(primaryTitle, primaryLocation) : Promise.resolve([]),
     allowedSources.has('arbeitnow')  ? scrapeArbeitnow({ search: primaryTitle, visaOnly: prefs.visaSponsorshipRequired, remoteOnly: isRemote }) : Promise.resolve([]),
-    scrapeIndeed(primaryTitle, primaryLocation),
-    allowedSources.has('linkedin')   ? scrapeLinkedIn(primaryTitle, primaryLocation) : Promise.resolve([]),
-    allowedSources.has('naukri')     ? scrapeNaukri(primaryTitle, primaryLocation) : Promise.resolve([]),
-    allowedSources.has('linkedin')   ? scrapeLinkedInApify(primaryTitle, primaryLocation) : Promise.resolve([]),
-    allowedSources.has('naukri')     ? scrapeNaukriApify(primaryTitle, primaryLocation) : Promise.resolve([]),
-    allowedSources.has('indeed')     ? scrapeIndeedApify(primaryTitle, primaryLocation) : Promise.resolve([]),
-    ...googleJobsTitles.map(title => scrapeGoogleJobs(title, primaryLocation)),
   ]);
 
   const googleJobs = googleJobsResults
     .filter(r => r.status === 'fulfilled')
     .flatMap(r => r.value);
 
-  const allJobs = [
-    ...(remotiveJobs.status      === 'fulfilled' ? remotiveJobs.value      : []),
-    ...(himalayasJobs.status     === 'fulfilled' ? himalayasJobs.value     : []),
-    ...(jobicyJobs.status        === 'fulfilled' ? jobicyJobs.value        : []),
-    ...(adzunaJobs.status        === 'fulfilled' ? adzunaJobs.value        : []),
-    ...(arbeitnowJobs.status     === 'fulfilled' ? arbeitnowJobs.value     : []),
-    ...(indeedJobs.status        === 'fulfilled' ? indeedJobs.value        : []),
-    ...(linkedinJobs.status      === 'fulfilled' ? linkedinJobs.value      : []),
+  // High priority: Naukri, LinkedIn, Indeed first
+  const highPriorityJobs = [
     ...(naukriJobs.status        === 'fulfilled' ? naukriJobs.value        : []),
-    ...(apifyLinkedinJobs.status === 'fulfilled' ? apifyLinkedinJobs.value : []),
     ...(apifyNaukriJobs.status   === 'fulfilled' ? apifyNaukriJobs.value   : []),
+    ...(linkedinJobs.status      === 'fulfilled' ? linkedinJobs.value      : []),
+    ...(apifyLinkedinJobs.status === 'fulfilled' ? apifyLinkedinJobs.value : []),
+    ...(indeedJobs.status        === 'fulfilled' ? indeedJobs.value        : []),
     ...(apifyIndeedJobs.status   === 'fulfilled' ? apifyIndeedJobs.value   : []),
+  ];
+
+  const secondaryJobs = [
     ...googleJobs,
-  ].filter(j => j.title && j.url);
+    ...(adzunaJobs.status        === 'fulfilled' ? adzunaJobs.value        : []),
+    ...(himalayasJobs.status     === 'fulfilled' ? himalayasJobs.value     : []),
+    ...(remotiveJobs.status      === 'fulfilled' ? remotiveJobs.value      : []),
+    ...(jobicyJobs.status        === 'fulfilled' ? jobicyJobs.value        : []),
+    ...(arbeitnowJobs.status     === 'fulfilled' ? arbeitnowJobs.value     : []),
+  ];
+
+  const allJobs = [...highPriorityJobs, ...secondaryJobs].filter(j => j.title && j.url);
 
   const googleLinkedinCount = googleJobs.filter(j => j.sourcePlatform === 'linkedin').length;
   const googleNaukriCount   = googleJobs.filter(j => j.sourcePlatform === 'naukri').length;
+  logger.info(`[JobDiscovery] Priority jobs fetched: ${highPriorityJobs.length} (Naukri, LinkedIn, Indeed), ${secondaryJobs.length} from secondary aggregators`);
   logger.info(`[JobDiscovery] Google Jobs: ${googleJobs.length} total (${googleLinkedinCount} via LinkedIn, ${googleNaukriCount} via Naukri) across ${googleJobsTitles.length} title queries`);
   logger.info(`[JobDiscovery] Raw: ${allJobs.length} jobs from all sources`);
 

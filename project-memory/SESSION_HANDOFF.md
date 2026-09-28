@@ -1,6 +1,6 @@
 # SESSION_HANDOFF.md
-Generated: Session 62 (2026-09-28).
-Status: Backend 100% Tests Pass (349/349 across 36 suites), Frontend 100% Tests Pass (93/93 across 15 suites), TypeScript clean (0 errors), Production Build Clean (`ng build` exit code 0). Unified Resend SDK + Nodemailer Free SMTP Fallback (Gmail, Brevo, Mailjet, custom) operational across email.service.js, jobAlert.service.js, and alertMailer.js.
+Generated: Session 63 (2026-09-28).
+Status: Backend 100% Tests Pass (349/349 across 36 suites), Frontend 100% Tests Pass (93/93 across 15 suites), TypeScript clean (0 errors), Production Build Clean (`ng build` exit code 0, 0 warnings). Priority scraping for Naukri/LinkedIn/Indeed, hourly cron scheduler, direct verified job URLs unwrapped from Google queries, pure-JS vector PDF failover engine (pdf-lib), animated futuristic glassmorphic splash loader, and redesigned landing page comparison operational.
 This document is meant to be self-contained — read this file plus `CURRENT_STATUS.md` and `TEST_RESULTS.md`.
 
 ---

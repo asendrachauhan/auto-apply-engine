@@ -17,13 +17,32 @@ const { parseRelativeDate } = require('../../utils/dateParser');
 const TIMEOUT = 20_000;
 const getCacheTtlMs = () => (Number(process.env.SERPAPI_CACHE_TTL_SECONDS) || 30 * 60) * 1000;
 
+const unwrapGoogleUrl = (rawUrl = '') => {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  const trimmed = rawUrl.trim();
+  try {
+    if (trimmed.includes('google.com/url?') || trimmed.includes('/url?q=') || trimmed.includes('/url?url=')) {
+      const parsed = new URL(trimmed);
+      const target = parsed.searchParams.get('q') || parsed.searchParams.get('url');
+      if (target && target.startsWith('http')) return decodeURIComponent(target);
+    }
+  } catch {}
+  return trimmed;
+};
+
 /**
  * Extract structured job info from SerpApi organic Google search result for Naukri.
  */
 const parseNaukriOrganicResult = (item, defaultKeyword = '', defaultLocation = 'India') => {
-  const url = item.link || '';
+  const url = unwrapGoogleUrl(item.link || '');
   const snippet = item.snippet || '';
   const rawTitle = item.title || '';
+
+  // Skip expired or closed jobs
+  if (/expired|closed|no longer available|not accepting applications|vacancy filled/i.test(snippet) ||
+      /expired|closed/i.test(rawTitle)) {
+    return null;
+  }
 
   // Clean title: remove trailing portal markers like "| Naukri.com"
   let cleanTitle = rawTitle.replace(/\s*\|\s*Naukri.*$/i, '').replace(/\s*-\s*Naukri.*$/i, '').trim();
@@ -123,6 +142,7 @@ const scrapeNaukri = async (keyword = 'software developer', location = 'India', 
         api_key: apiKey,
         hl: 'en',
         gl: 'in',
+        tbs: 'qdr:m', // Only fetch jobs indexed in the past month (avoids stale/expired jobs)
         num: Math.min(20, Math.max(10, limit)),
       },
       timeout: TIMEOUT,
@@ -132,6 +152,7 @@ const scrapeNaukri = async (keyword = 'software developer', location = 'India', 
     const jobs = organic
       .filter(item => item.link && item.link.includes('naukri.com/job-listings'))
       .map(item => parseNaukriOrganicResult(item, keyword, location))
+      .filter(Boolean)
       .sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
 
     logger.info(`[Naukri] Found ${jobs.length} jobs for "${keyword}"`);

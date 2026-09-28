@@ -37,6 +37,13 @@ const computeRelevance = (job, targetRoles, skills) => {
     }
   }
 
+  // Top platform priority bonus: Naukri, LinkedIn, Indeed
+  const src = (job.source || '').toLowerCase();
+  const ptf = (job.sourcePlatform || '').toLowerCase();
+  if (['naukri', 'linkedin', 'indeed'].includes(src) || ['naukri', 'linkedin', 'indeed'].includes(ptf)) {
+    score += 250;
+  }
+
   return score;
 };
 

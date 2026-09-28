@@ -33,6 +33,45 @@ const BASE_URL = 'https://serpapi.com/search';
 const TIMEOUT  = 20_000;
 const getCacheTtlMs = () => (Number(process.env.SERPAPI_CACHE_TTL_SECONDS) || 30 * 60) * 1000;
 
+// Unwrap Google redirect URLs (e.g. https://www.google.com/url?q=...) to direct target URLs
+const unwrapGoogleUrl = (rawUrl = '') => {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  const trimmed = rawUrl.trim();
+  try {
+    if (trimmed.includes('google.com/url?') || trimmed.includes('/url?q=') || trimmed.includes('/url?url=')) {
+      const parsed = new URL(trimmed);
+      const target = parsed.searchParams.get('q') || parsed.searchParams.get('url');
+      if (target && target.startsWith('http')) return decodeURIComponent(target);
+    }
+  } catch {}
+  return trimmed;
+};
+
+// Select the most direct and reliable job application URL, prioritizing Naukri, LinkedIn, Indeed, and employer sites
+const extractBestJobUrl = (job) => {
+  const options = Array.isArray(job.apply_options) ? job.apply_options : [];
+
+  // Priority 1: Direct link from top priority portals (Naukri, LinkedIn, Indeed)
+  const topPortalMatch = options.find(o => {
+    const title = (o.title || '').toLowerCase();
+    const link  = (o.link || '').toLowerCase();
+    return (
+      title.includes('naukri') || link.includes('naukri.com') ||
+      title.includes('linkedin') || link.includes('linkedin.com') ||
+      title.includes('indeed') || link.includes('indeed.com')
+    );
+  });
+  if (topPortalMatch?.link) return unwrapGoogleUrl(topPortalMatch.link);
+
+  // Priority 2: Any direct application link from apply_options
+  const validOption = options.find(o => o.link && typeof o.link === 'string' && o.link.startsWith('http'));
+  if (validOption?.link) return unwrapGoogleUrl(validOption.link);
+
+  // Priority 3: Fall back to related link or Google share link
+  const fallback = job.related_links?.[0]?.link || job.share_link || '';
+  return unwrapGoogleUrl(fallback);
+};
+
 // Google Jobs' `via` field reads like "via LinkedIn", "via Naukri.com",
 // "via Indeed", etc. — this lets us credit the real origin platform even
 // though we only ever queried the compliant, sanctioned Google Jobs API.
@@ -42,31 +81,34 @@ const detectSourcePlatform = (via = '', applyOptions = [], url = '') => {
   const optTitles = (applyOptions || []).map(o => (o.title || '').toLowerCase());
   const optLinks  = (applyOptions || []).map(o => (o.link || '').toLowerCase());
 
-  if (v.includes('linkedin') || u.includes('linkedin.com') || optTitles.some(t => t.includes('linkedin')) || optLinks.some(l => l.includes('linkedin.com'))) return 'linkedin';
   if (v.includes('naukri') || u.includes('naukri.com') || optTitles.some(t => t.includes('naukri')) || optLinks.some(l => l.includes('naukri.com'))) return 'naukri';
+  if (v.includes('linkedin') || u.includes('linkedin.com') || optTitles.some(t => t.includes('linkedin')) || optLinks.some(l => l.includes('linkedin.com'))) return 'linkedin';
   if (v.includes('indeed') || u.includes('indeed.com') || optTitles.some(t => t.includes('indeed')) || optLinks.some(l => l.includes('indeed.com'))) return 'indeed';
   if (v.includes('glassdoor') || u.includes('glassdoor.com') || optTitles.some(t => t.includes('glassdoor')) || optLinks.some(l => l.includes('glassdoor.com'))) return 'glassdoor';
   return 'other';
 };
 
-const normalize = (job) => ({
-  source:      'google-jobs',
-  sourcePlatform: detectSourcePlatform(job.via, job.apply_options, job.related_links?.[0]?.link || job.share_link),
-  externalId:  job.job_id || `gj-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-  title:       job.title || '',
-  company:     job.company_name || '',
-  location:    job.location || 'Remote',
-  description: (job.description || '').slice(0, 4000),
-  url:         job.related_links?.[0]?.link || job.share_link || '',
-  salary:      job.detected_extensions?.salary || '',
-  remote:      (job.detected_extensions?.work_from_home) || false,
-  jobType:     job.detected_extensions?.schedule_type || 'Full-time',
-  skills:      [],
-  postedAt:    parseRelativeDate(job.extensions || job.detected_extensions?.posted_at),
-  // Keep original platform info
-  platform:    job.via || 'Google Jobs',
-  applyLinks:  job.apply_options?.map(o => ({ platform: o.title, url: o.link })) || [],
-});
+const normalize = (job) => {
+  const bestUrl = extractBestJobUrl(job);
+  return {
+    source:      'google-jobs',
+    sourcePlatform: detectSourcePlatform(job.via, job.apply_options, bestUrl),
+    externalId:  job.job_id || `gj-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    title:       job.title || '',
+    company:     job.company_name || '',
+    location:    job.location || 'Remote',
+    description: (job.description || '').slice(0, 4000),
+    url:         bestUrl,
+    salary:      job.detected_extensions?.salary || '',
+    remote:      (job.detected_extensions?.work_from_home) || false,
+    jobType:     job.detected_extensions?.schedule_type || 'Full-time',
+    skills:      [],
+    postedAt:    parseRelativeDate(job.extensions || job.detected_extensions?.posted_at),
+    // Keep original platform info
+    platform:    job.via || 'Google Jobs',
+    applyLinks:  job.apply_options?.map(o => ({ platform: o.title, url: unwrapGoogleUrl(o.link) })) || [],
+  };
+};
 
 const cacheKeyFor = (searchTerm, location) => `${searchTerm}::${location}`.toLowerCase().trim();
 

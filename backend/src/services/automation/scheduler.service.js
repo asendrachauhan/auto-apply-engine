@@ -3,14 +3,15 @@ const cron   = require('node-cron');
 const User   = require('../../models/User');
 const AutomationSession = require('../../models/AutomationSession');
 const { runForUser }    = require('./automationEngine.service');
+const { runForAllUsers } = require('./jobAlertEngine.service');
 const { purgeExpiredAccounts } = require('./dataPurge.service');
 const { AUTO_SESSION_STATUS } = require('../../utils/constants');
 const logger = require('../../utils/logger');
 
 const startScheduler = () => {
-  // Main automation run — every 6 hours
-  cron.schedule(process.env.CRON_SCHEDULE || '0 */6 * * *', async () => {
-    logger.info('Scheduler: starting automation for active users');
+  // Main automation run & scraping — every 1 hour (0 * * * *)
+  cron.schedule(process.env.CRON_SCHEDULE || '0 * * * *', async () => {
+    logger.info('Scheduler: starting hourly automation & job discovery for active users');
     try {
       const users = await User.find({ automationActive: true }).select('_id email');
       logger.info(`Scheduler: ${users.length} active users`);
@@ -21,6 +22,9 @@ const startScheduler = () => {
         } catch (e) { logger.error(`Scheduler error for ${user.email}: ${e.message}`); }
         await new Promise(r => setTimeout(r, 2000)); // 2s between users
       }
+
+      // Also trigger hourly alert pipeline to surface newly published jobs to candidates
+      runForAllUsers().catch(err => logger.warn(`[Scheduler] Hourly alert discovery failed: ${err.message}`));
     } catch (err) { logger.error(`Scheduler failed: ${err.message}`); }
   });
 
